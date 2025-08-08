@@ -3,1436 +3,800 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Daily plant care game with engaging challenges">
-    <meta name="author" content="@msd1shka">
-    <title>Click&Grow</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
-    <meta name="theme-color" content="#10b981">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            animation: fadeInDown 1s ease-out;
-        }
-
-        .plant-name {
-            font-size: 2.2rem;
-            font-weight: 300;
-            margin-bottom: 8px;
-            background: linear-gradient(45deg, #4CAF50, #8BC34A, #CDDC39);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
-        }
-
-        .stats {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .stat {
-            text-align: center;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .mood-indicator {
-            font-size: 2rem;
-            margin: 10px 0;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
-        }
-
-        .plant-container {
-            position: relative;
-            margin: 20px 0;
-            animation: fadeIn 1.5s ease-out;
-        }
-
-        .plant-svg {
-            width: 280px;
-            height: 350px;
-            filter: drop-shadow(0 10px 30px rgba(76, 175, 80, 0.2));
-            transition: all 0.3s ease;
-        }
-
-        .plant-svg.happy {
-            filter: drop-shadow(0 10px 30px rgba(76, 175, 80, 0.5));
-            transform: scale(1.02);
-        }
-
-        .plant-svg.sad {
-            filter: drop-shadow(0 10px 30px rgba(158, 158, 158, 0.3));
-            transform: scale(0.98);
-        }
-
-        .game-area {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
-            margin: 20px 0;
-            text-align: center;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: fadeInUp 1s ease-out;
-        }
-
-        .daily-task {
-            margin-bottom: 20px;
-        }
-
-        .task-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #8BC34A;
-        }
-
-        .mini-game {
-            position: relative;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .watering-game {
-            position: relative;
-            width: 100%;
-            height: 100px;
-        }
-
-        .watering-can {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2rem;
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-
-        .watering-can.pouring {
-            transform: translateX(-50%) rotate(45deg);
-        }
-
-        .water-drop {
-            position: absolute;
-            background: #2196F3;
-            border-radius: 50%;
-            width: 8px;
-            height: 12px;
-            animation: drop 1.5s ease-in;
-        }
-
-        @keyframes drop {
-            0% { top: 40px; opacity: 1; }
-            100% { top: 80px; opacity: 0; }
-        }
-
-        .target-zone {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 20px;
-            background: rgba(76, 175, 80, 0.3);
-            border-radius: 10px;
-            border: 2px solid #4CAF50;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            width: 0%;
-            transition: width 0.5s ease;
-            border-radius: 4px;
-        }
-
-        .timing-game {
-            position: relative;
-        }
-
-        .timing-circle {
-            width: 80px;
-            height: 80px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            position: relative;
-            margin: 0 auto;
-            cursor: pointer;
-        }
-
-        .timing-indicator {
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            background: #FF9800;
-            border-radius: 50%;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: translateX(-50%) rotate(0deg) translateX(40px) rotate(0deg); }
-            to { transform: translateX(-50%) rotate(360deg) translateX(40px) rotate(-360deg); }
-        }
-
-        .perfect-zone {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 16px;
-            height: 16px;
-            background: #4CAF50;
-            border-radius: 50%;
-        }
-
-        .light-game {
-            position: relative;
-        }
-
-        .light-slider {
-            width: 200px;
-            height: 20px;
-            background: linear-gradient(90deg, #1976D2, #FFC107, #FF5722);
-            border-radius: 10px;
-            position: relative;
-            margin: 0 auto;
-            cursor: pointer;
-        }
-
-        .light-handle {
-            position: absolute;
-            top: -5px;
-            width: 30px;
-            height: 30px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            cursor: grab;
-            transition: transform 0.1s ease;
-        }
-
-        .light-handle:active {
-            cursor: grabbing;
-            transform: scale(1.1);
-        }
-
-        .game-button {
-            background: linear-gradient(45deg, #4CAF50, #8BC34A);
-            border: none;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-            margin-top: 15px;
-        }
-
-        .game-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-        }
-
-        .game-button:disabled {
-            background: linear-gradient(45deg, #424242, #616161);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .completion-message {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4CAF50;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            animation: pulse 1s ease-in-out;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .next-tasks {
-            margin-top: 20px;
-            text-align: center;
-            opacity: 0.7;
-            font-size: 0.9rem;
-        }
-
-        .coffee-button {
-            background: linear-gradient(45deg, #FF9800, #FFC107);
-            border: none;
-            color: #000;
-            padding: 10px 25px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
-            margin-top: 30px;
-        }
-
-        .coffee-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.5);
-        }
-
-        .settings-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .settings-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg);
-        }
-
-        .settings-content {
-            text-align: left;
-        }
-
-        .settings-item {
-            margin: 15px 0;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .settings-label {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
-
-        .settings-value {
-            font-size: 1rem;
-            color: #8BC34A;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(15px);
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-            font-weight: 300;
-            color: #8BC34A;
-        }
-
-        .modal-content input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            margin: 20px 0;
-            width: 100%;
-            outline: none;
-        }
-
-        .modal-content input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .modal-button {
-            background: linear-gradient(45deg, #4CAF50, #8BC34A);
-            border: none;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0;
-            animation: float 2s ease-out forwards;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0) scale(0); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1); opacity: 0; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes grow {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .growing {
-            animation: grow 0.8s ease-in-out;
-        }
-
-        @media (max-width: 768px) {
-            .plant-name {
-                font-size: 1.8rem;
-            }
-            
-            .plant-svg {
-                width: 240px;
-                height: 300px;
-            }
-            
-            .stats {
-                gap: 15px;
-                font-size: 0.8rem;
-            }
-            
-            .game-area {
-                padding: 20px;
-            }
-        }
-    </style>
+    <title>Click&Grow Premium v1.0.0 - Ultimate Plant Care Experience</title>
+    
+    <!-- Telegram WebApp Integration -->
+    <!-- Offline-compatible: using local stub to avoid external dependency. Telegram API will be available in Telegram client. -->
+    <script src="js/telegram-webapp-stub.js"></script>
+    
+    <!-- Modern font for premium look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Modern CSS Architecture -->
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/themes.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10B981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Meta tags for better sharing -->
+    <meta name="description" content="The world's most advanced plant care game with realistic growth, mini-games, and achievements">
+    <meta name="keywords" content="plant care, game, clicker, growth, achievements, mini-games">
+    <meta property="og:title" content="Click&Grow Premium">
+    <meta property="og:description" content="Ultimate plant care experience">
+    <meta property="og:type" content="website">
 </head>
 <body>
-    <div class="stars"></div>
-    <div class="particles"></div>
-    
-    <button class="settings-button" onclick="showSettings()">⚙️</button>
-    
-    <div class="container">
-        <div class="header">
-            <h1 class="plant-name" id="plantName">My Plant</h1>
-            <div class="stats">
-                <div class="stat">
-                    <div>Age</div>
-                    <div id="growthLevel">1</div>
-                </div>
-                <div class="stat">
-                    <div>Days</div>
-                    <div id="plantAge">0</div>
-                </div>
-                <div class="stat">
-                    <div>XP</div>
-                    <div><span id="experience">0</span>/100</div>
-                </div>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="logo-plant">🌱</div>
+                <div class="logo-glow"></div>
             </div>
-            <div class="mood-indicator" id="moodIndicator">😊</div>
-        </div>
-
-        <div class="plant-container">
-            <svg class="plant-svg" id="plantSvg" viewBox="0 0 280 350">
-                <defs>
-                    <linearGradient id="stemGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#8BC34A;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#C8E6C9;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" style="stop-color:#FFEB3B;stop-opacity:0.8" />
-                        <stop offset="100%" style="stop-color:#FFC107;stop-opacity:0" />
-                    </radialGradient>
-                </defs>
-                
-                <rect x="90" y="300" width="100" height="50" fill="#3E2723" rx="10"/>
-                
-                <rect id="stem" x="135" y="180" width="10" height="120" fill="url(#stemGradient)" rx="5"/>
-                
-                <g id="leaves"></g>
-                
-                <circle id="flower" cx="140" cy="180" r="0" fill="#FF5722" opacity="0"/>
-                <circle id="glow" cx="140" cy="175" r="0" fill="url(#glowGradient)" opacity="0"/>
-            </svg>
-        </div>
-
-        <div class="game-area">
-            <div class="daily-task" id="dailyTask">
-                <div class="task-title" id="taskTitle">Today's Challenge</div>
-                <div class="mini-game" id="miniGame">
-                    <!-- Мини-игры будут загружаться здесь -->
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <button class="game-button" id="gameButton">Start</button>
-                <div class="completion-message" id="completionMessage" style="display: none;">
-                    🎉 Great job! Your plant is happy!
-                </div>
+            <div class="loading-text">Click&Grow Premium</div>
+                            <div class="loading-version">v1.0.0</div>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
             </div>
-            
-            <div class="next-tasks" id="nextTasks">
-                Tomorrow: new challenge
+            <div class="loading-tips">
+                <div class="tip-text">Loading your garden...</div>
             </div>
-        </div>
-
-        <button class="coffee-button" onclick="buyMeCoffee()">
-            ⭐ Buy Me a Coffee
-        </button>
-    </div>
-
-    <div class="modal" id="nameModal">
-        <div class="modal-content">
-            <h2>🌱 Welcome to PlantCare!</h2>
-            <p>Give your plant a name and start taking care of it every day!</p>
-            <input type="text" id="plantNameInput" placeholder="e.g., Green Friend" maxlength="20">
-            <br>
-            <button class="modal-button" onclick="savePlantName()">Create Plant</button>
         </div>
     </div>
 
-    <div class="modal" id="settingsModal" style="display: none;">
-        <div class="modal-content">
-            <h2>⚙️ Settings</h2>
-            <div class="settings-content">
-                <div class="settings-item">
-                    <div class="settings-label">App Version</div>
-                    <div class="settings-value">v0.0.5a</div>
+    <!-- Main App Container -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="user-avatar">
+                    <div class="avatar-plant">🌱</div>
+                    <div class="avatar-level" id="header-level">1</div>
                 </div>
-                <div class="settings-item">
-                    <div class="settings-label">Game Type</div>
-                    <div class="settings-value">Daily Plant Care</div>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-label">Data Storage</div>
-                    <div class="settings-value">Local Storage (Offline)</div>
-                </div>
-                <h3 style="color: #8BC34A; margin: 20px 0 10px 0; font-size: 1.1rem;">📞 Contacts</h3>
-                <div class="settings-item">
-                    <div class="settings-label">Developer</div>
-                    <div class="settings-value">TG: @msd1shka</div>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-label">Report Bugs</div>
-                    <div class="settings-value">Message on Telegram</div>
-                </div>
-                <div class="settings-item">
-                    <div class="settings-label">Feature Requests</div>
-                    <div class="settings-value">Contact developer</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Plant Master</div>
+                    <div class="user-title" id="user-title">Novice Gardener</div>
                 </div>
             </div>
-            <button class="modal-button" onclick="hideSettings()">Close</button>
+            <div class="header-right">
+                <div class="resource-display">
+                    <div class="resource-item">
+                        <span class="resource-icon">⭐</span>
+                        <span class="resource-value" id="experience">0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-icon">🪙</span>
+                        <span class="resource-value" id="coins">100</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-icon">💎</span>
+                        <span class="resource-value" id="gems">5</span>
+                    </div>
+                </div>
+                <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Theme" data-action="toggle-theme">
+                    <span class="btn-icon">🌙</span>
+                </button>
+                <button class="settings-btn" id="settings-btn" data-action="open-settings">
+                    <span class="btn-icon">⚙️</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Home Tab -->
+            <section class="tab-content active" id="home-tab">
+                <!-- Plant Stage -->
+                <div class="plant-stage" id="plant-stage">
+                    <div class="plant-container" id="plant-container">
+                        <div class="plant-visual" id="plant-visual">
+                            <!-- Realistic plant SVG will be rendered here -->
+                        </div>
+                        <div class="plant-effects" id="plant-effects">
+                            <!-- Particle effects -->
+                        </div>
+                        <div class="plant-glow"></div>
+                    </div>
+                    
+                    <!-- Plant Stats -->
+                    <div class="plant-stats">
+                        <div class="stat-bar">
+                            <div class="stat-label">
+                                <span class="stat-icon">❤️</span>
+                                <span class="stat-name">Health</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="progress-fill health-progress" id="health-progress"></div>
+                                <span class="stat-value" id="health-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-label">
+                                <span class="stat-icon">😊</span>
+                                <span class="stat-name">Happiness</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="progress-fill happiness-progress" id="happiness-progress"></div>
+                                <span class="stat-value" id="happiness-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-label">
+                                <span class="stat-icon">🌱</span>
+                                <span class="stat-name">Growth</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="progress-fill growth-progress" id="growth-progress"></div>
+                                <span class="stat-value" id="growth-value">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <section class="action-panel">
+                    <button class="action-btn water-btn" id="water-btn" data-action="water">
+                        <div class="btn-icon">💧</div>
+                        <div class="btn-text">Water</div>
+                        <div class="btn-cooldown" id="water-cooldown"></div>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="action-btn fertilizer-btn" id="fertilizer-btn" data-action="fertilizer">
+                        <div class="btn-icon">🌰</div>
+                        <div class="btn-text">Fertilize</div>
+                        <div class="btn-cooldown" id="fertilizer-cooldown"></div>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="action-btn sunlight-btn" id="sunlight-btn" data-action="sunlight">
+                        <div class="btn-icon">☀️</div>
+                        <div class="btn-text">Sunlight</div>
+                        <div class="btn-cooldown" id="sunlight-cooldown"></div>
+                        <div class="btn-glow"></div>
+                    </button>
+
+                </section>
+
+                <!-- Quick Stats -->
+                <section class="quick-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="daily-goal">0/100</div>
+                            <div class="stat-label">Daily Goal</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="streak">0</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="achievements-count">0</div>
+                            <div class="stat-label">Achievements</div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Shop Tab -->
+            <section class="tab-content" id="shop-tab">
+                <div class="shop-header">
+                    <h2>🛍️ Plant Shop</h2>
+                    <p>Enhance your plant with special items!</p>
+                </div>
+                <div class="shop-categories">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="boosters">Boosters</button>
+                    <button class="category-btn" data-category="consumables">Consumables</button>
+                    <button class="category-btn" data-category="premium">Premium</button>
+                    <button class="category-btn" data-category="cosmetics">Cosmetics</button>
+                </div>
+                <div class="shop-items" id="shop-items">
+                    <!-- Shop items will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Games Tab -->
+            <section class="tab-content" id="games-tab">
+                <div class="games-header">
+                    <h2>🎮 Mini-Games</h2>
+                    <p>Complete challenges to earn extra rewards!</p>
+                </div>
+                <div class="games-grid" id="games-grid">
+                    <div class="game-card" data-game="water" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">💧</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Precision Watering</h3>
+                            <p>Click when the water drop is over the plant!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Easy</span>
+                                <span class="reward">+5 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="fertilizer" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">🌿</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Fertilizer Mix</h3>
+                            <p>Match the fertilizer recipe pattern!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Medium</span>
+                                <span class="reward">+8 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="sunlight" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">☀️</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Sunlight Focus</h3>
+                            <p>Guide the sunlight beam to the plant!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Medium</span>
+                                <span class="reward">+6 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="puzzle" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">🧩</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Plant Puzzle</h3>
+                            <p>Arrange the plant pieces in the correct order!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Medium</span>
+                                <span class="reward">+12 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="speed" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">⚡</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Speed Harvest</h3>
+                            <p>Quickly harvest crops before they disappear!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Hard</span>
+                                <span class="reward">+15 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="memory" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">🧠</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Memory Garden</h3>
+                            <p>Find matching pairs of plant cards!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Easy</span>
+                                <span class="reward">+8 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card" data-game="balance" data-action="start-game">
+                        <div class="game-visual">
+                            <div class="game-icon">⚖️</div>
+                            <div class="game-particles"></div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Nutrient Balance</h3>
+                            <p>Balance nutrients on the scale for perfect growth!</p>
+                            <div class="game-stats">
+                                <span class="difficulty">Medium</span>
+                                <span class="reward">+14 coins</span>
+                            </div>
+                        </div>
+                        <div class="game-overlay">
+                            <button class="play-btn">Play Now</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Challenges Tab -->
+            <section class="tab-content" id="challenges-tab">
+                <div class="challenges-header">
+                    <h2>🎯 Challenges</h2>
+                    <p>Complete challenges for special rewards!</p>
+                </div>
+                <div class="challenges-list" id="challenges-list">
+                    <!-- Challenges will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Achievements Tab -->
+            <section class="tab-content" id="achievements-tab">
+                <div class="achievements-header">
+                    <h2>🏆 Achievements</h2>
+                    <p>Unlock achievements to earn special rewards!</p>
+                    <div class="achievement-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="achievement-progress-fill"></div>
+                        </div>
+                        <div class="progress-text">
+                        <span id="achievements-unlocked">0</span> / <span id="achievements-total">0</span> unlocked
+                        </div>
+                    </div>
+                </div>
+                <div class="achievements-categories">
+                    <button class="achievement-category active" data-category="all">All</button>
+                    <button class="achievement-category" data-category="growth">Growth</button>
+                    <button class="achievement-category" data-category="games">Games</button>
+                    <button class="achievement-category" data-category="challenges">Challenges</button>
+                    <button class="achievement-category" data-category="special">Special</button>
+                </div>
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- Achievements will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Profile Tab -->
+            <section class="tab-content" id="profile-tab">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <div class="avatar-plant">🌱</div>
+                        <div class="avatar-level" id="profile-avatar-level">1</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 class="profile-title">Plant Master</h2>
+                        <p class="profile-subtitle">Novice Gardener</p>
+                        <div class="profile-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="profile-progress-fill"></div>
+                            </div>
+                            <span class="progress-text">Level 1 • 0/100 XP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-card premium">
+                        <div class="stat-icon">🌱</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-level">1</div>
+                            <div class="stat-label">Plant Level</div>
+                        </div>
+                        <div class="stat-glow"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-total-exp">0</div>
+                            <div class="stat-label">Total XP</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🪙</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-total-coins">0</div>
+                            <div class="stat-label">Coins Earned</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎮</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-games-played">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-challenges">0</div>
+                            <div class="stat-label">Challenges</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profile-best-streak">0</div>
+                            <div class="stat-label">Best Streak</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-achievements">
+                    <h3 class="section-title">Recent Achievements</h3>
+                    <div class="achievements-preview" id="profile-achievements">
+                        <div class="achievement-preview">
+                            <div class="achievement-icon">🏆</div>
+                            <div class="achievement-info">
+                                <div class="achievement-name">First Steps</div>
+                                <div class="achievement-desc">Started your plant journey</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="profile-btn premium" id="buy-coffee-btn">
+                        <span class="btn-icon">☕</span>
+                        <span class="btn-text">Buy Me a Coffee</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="profile-btn secondary" id="export-data-btn">
+                        <span class="btn-icon">📤</span>
+                        <span class="btn-text">Export Data</span>
+                    </button>
+                    <button class="profile-btn danger" id="reset-game-btn">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Reset Game</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Garden Tab -->
+            <section class="tab-content" id="garden-tab">
+                <div class="garden-header">
+                    <h2>🌺 My Garden</h2>
+                    <p>Manage your collection of beautiful plants!</p>
+                </div>
+                <div class="garden-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">🌱</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="garden-plants">1</div>
+                            <div class="stat-label">Plants</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌸</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="garden-varieties">1</div>
+                            <div class="stat-label">Varieties</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌿</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="garden-health">100%</div>
+                            <div class="stat-label">Health</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="garden-grid" id="garden-grid">
+                    <div class="garden-plot active">
+                        <div class="plot-visual">
+                            <div class="plot-plant">🌱</div>
+                            <div class="plot-glow"></div>
+                        </div>
+                        <div class="plot-info">
+                            <h3>Main Plant</h3>
+                            <p>Level 1 - Growing Strong</p>
+                        </div>
+                        <div class="plot-actions">
+                            <button class="plot-btn primary">Focus</button>
+                        </div>
+                    </div>
+                    <div class="garden-plot locked">
+                        <div class="plot-visual">
+                            <div class="plot-lock">🔒</div>
+                        </div>
+                        <div class="plot-info">
+                            <h3>Plot 2</h3>
+                            <p>Unlock at Level 5</p>
+                        </div>
+                        <div class="plot-actions">
+                            <button class="plot-btn disabled">Locked</button>
+                        </div>
+                    </div>
+                    <div class="garden-plot locked">
+                        <div class="plot-visual">
+                            <div class="plot-lock">🔒</div>
+                        </div>
+                        <div class="plot-info">
+                            <h3>Plot 3</h3>
+                            <p>Unlock at Level 10</p>
+                        </div>
+                        <div class="plot-actions">
+                            <button class="plot-btn disabled">Locked</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-tab active" data-tab="home" data-action="switch-tab">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-tab" data-tab="shop" data-action="switch-tab">
+                <span class="nav-icon">🛍️</span>
+                <span class="nav-label">Shop</span>
+            </button>
+            <button class="nav-tab" data-tab="games" data-action="switch-tab">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-label">Games</span>
+            </button>
+            <button class="nav-tab" data-tab="challenges" data-action="switch-tab">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Challenges</span>
+            </button>
+            <button class="nav-tab" data-tab="achievements" data-action="switch-tab">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-label">Achievements</span>
+            </button>
+            <button class="nav-tab" data-tab="garden" data-action="switch-tab">
+                <span class="nav-icon">🌺</span>
+                <span class="nav-label">Garden</span>
+            </button>
+            <button class="nav-tab" data-tab="profile" data-action="switch-tab">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal-overlay welcome-modal">
+        <div class="modal-container">
+            <div class="modal-background">
+                <div class="bg-orb orb-1"></div>
+                <div class="bg-orb orb-2"></div>
+                <div class="bg-particles"></div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-logo">
+                        <div class="logo-icon">🌱</div>
+                        <div class="logo-glow"></div>
+                    </div>
+                    <h1 class="modal-title">Click&Grow Premium</h1>
+                    <p class="modal-subtitle">Ultimate Plant Care Experience</p>
+                    <div class="version-badge">v1.0.0</div>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="input-section">
+                        <label class="input-label">
+                            <span class="label-icon">✨</span>
+                            <span class="label-text">Give your plant a unique name</span>
+                        </label>
+                        <div class="input-container">
+                            <input type="text" id="plant-name-input" class="premium-input" 
+                                   placeholder="My Beautiful Plant" maxlength="25" autocomplete="off">
+                            <div class="input-glow"></div>
+                        </div>
+                        <div class="input-hint">Choose a name that inspires growth and joy</div>
+                    </div>
+                    
+                    <button id="start-btn" class="premium-button start-button">
+                        <div class="button-background"></div>
+                        <div class="button-content">
+                            <span class="button-icon">🚀</span>
+                            <span class="button-text">Begin Your Journey</span>
+                        </div>
+                        <div class="button-shine"></div>
+                    </button>
+                    
+                    <div class="features-preview">
+                        <div class="feature-item">
+                            <span class="feature-icon">🎮</span>
+                            <span class="feature-text">Interactive Mini-Games</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎯</span>
+                            <span class="feature-text">Daily Challenges</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🏆</span>
+                            <span class="feature-text">75+ Achievements</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🌱</span>
+                            <span class="feature-text">Realistic Growth</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🌙</span>
+                            <span class="feature-text">Dark Mode</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📈</span>
+                            <span class="feature-text">240 Levels</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        class PlantGame {
-            constructor() {
-                this.loadData();
-                this.init();
-                this.createStars();
-            }
-
-            loadData() {
-                const data = JSON.parse(localStorage.getItem('plantGameData') || '{}');
-                this.plantName = data.plantName || '';
-                this.lastCared = data.lastCared || '';
-                this.growthLevel = data.growthLevel || 1;
-                this.experience = data.experience || 0;
-                this.createdDate = data.createdDate || new Date().toDateString();
-                this.mood = data.mood || 'happy';
-                this.completedTasks = data.completedTasks || {};
-                this.currentStreak = data.currentStreak || 0;
-            }
-
-            saveData() {
-                const data = {
-                    plantName: this.plantName,
-                    lastCared: this.lastCared,
-                    growthLevel: this.growthLevel,
-                    experience: this.experience,
-                    createdDate: this.createdDate,
-                    mood: this.mood,
-                    completedTasks: this.completedTasks,
-                    currentStreak: this.currentStreak
-                };
-                localStorage.setItem('plantGameData', JSON.stringify(data));
-            }
-
-            init() {
-                if (!this.plantName) {
-                    document.getElementById('nameModal').style.display = 'flex';
-                } else {
-                    this.hideModal();
-                    this.updateUI();
-                    this.setupDailyTask();
-                    this.updatePlantVisual();
-                    this.checkMood();
-                }
-            }
-
-            createStars() {
-                const starsContainer = document.querySelector('.stars');
-                for (let i = 0; i < 50; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.left = Math.random() * 100 + '%';
-                    star.style.top = Math.random() * 100 + '%';
-                    star.style.width = star.style.height = Math.random() * 3 + 1 + 'px';
-                    star.style.animationDelay = Math.random() * 2 + 's';
-                    starsContainer.appendChild(star);
-                }
-            }
-
-            savePlantName() {
-                const nameInput = document.getElementById('plantNameInput');
-                const name = nameInput.value.trim();
-                if (name) {
-                    this.plantName = name;
-                    this.saveData();
-                    this.hideModal();
-                    this.updateUI();
-                    this.setupDailyTask();
-                    this.updatePlantVisual();
-                    this.checkMood();
-                }
-            }
-
-            hideModal() {
-                document.getElementById('nameModal').style.display = 'none';
-            }
-
-            setupDailyTask() {
-                const today = new Date().toDateString();
-                const taskCompleted = this.completedTasks[today];
-                
-                if (taskCompleted) {
-                    this.showCompletedTask();
-                } else {
-                    this.generateDailyTask();
-                }
-            }
-
-            generateDailyTask() {
-                const tasks = [
-                    { type: 'watering', title: '💧 Water the Plant', description: 'Hit the target with water drops!' },
-                    { type: 'timing', title: '⏰ Perfect Timing', description: 'Click at the right moment!' },
-                    { type: 'light', title: '☀️ Light Balance', description: 'Find the perfect light balance!' },
-                    { type: 'memory', title: '🧠 Memory Challenge', description: 'Remember the sequence!' },
-                    { type: 'speed', title: '⚡ Speed Challenge', description: 'Click as fast as you can!' },
-                    { type: 'precision', title: '🎯 Precision Test', description: 'Hit the moving target!' }
-                ];
-                
-                const dayIndex = Math.floor((new Date() - new Date(this.createdDate)) / (1000 * 60 * 60 * 24));
-                const currentTask = tasks[dayIndex % tasks.length];
-                
-                this.currentTask = currentTask;
-                this.setupMiniGame(currentTask);
-            }
-
-            setupMiniGame(task) {
-                const taskTitle = document.getElementById('taskTitle');
-                const miniGame = document.getElementById('miniGame');
-                const gameButton = document.getElementById('gameButton');
-                
-                taskTitle.textContent = task.title;
-                miniGame.innerHTML = '';
-                
-                switch (task.type) {
-                    case 'watering':
-                        this.setupWateringGame(miniGame);
-                        break;
-                    case 'timing':
-                        this.setupTimingGame(miniGame);
-                        break;
-                    case 'light':
-                        this.setupLightGame(miniGame);
-                        break;
-                    case 'memory':
-                        this.setupMemoryGame(miniGame);
-                        break;
-                    case 'speed':
-                        this.setupSpeedGame(miniGame);
-                        break;
-                    case 'precision':
-                        this.setupPrecisionGame(miniGame);
-                        break;
-                }
-                
-                gameButton.onclick = () => this.startMiniGame(task.type);
-            }
-
-            showSettings() {
-                document.getElementById('settingsModal').style.display = 'flex';
-            }
-
-            hideSettings() {
-                document.getElementById('settingsModal').style.display = 'none';
-            }
-
-            setupWateringGame(container) {
-                container.innerHTML = `
-                    <div class="watering-game" style="height: 200px; position: relative; background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-radius: 15px; overflow: hidden;">
-                        <div class="watering-can" id="wateringCan" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 2.5rem; cursor: pointer; transition: all 0.3s ease;">🚿</div>
-                        <div class="target-zone" id="targetZone" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 15px; background: rgba(16, 185, 129, 0.3); border: 2px dashed #10b981; border-radius: 10px; animation: targetGlow 2s ease-in-out infinite;"></div>
-                        <div class="water-score" id="waterScore" style="position: absolute; top: 10px; right: 10px; color: #10b981; font-weight: bold;">Hits: 0/5</div>
-                    </div>
-                    <style>
-                        @keyframes targetGlow {
-                            0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-                            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
-                        }
-                        .water-drop {
-                            position: absolute;
-                            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-                            border-radius: 50% 50% 50% 0;
-                            width: 8px;
-                            height: 12px;
-                            animation: waterDrop 1.5s ease-in forwards;
-                        }
-                        @keyframes waterDrop {
-                            0% { top: 60px; opacity: 1; transform: rotate(45deg) scale(0.5); }
-                            50% { transform: rotate(45deg) scale(1); }
-                            100% { top: 170px; opacity: 0; transform: rotate(45deg) scale(0.8); }
-                        }
-                    </style>
-                `;
-                this.gameActive = false;
-                this.waterHits = 0;
-            }
-
-            setupTimingGame(container) {
-                container.innerHTML = `
-                    <div class="timing-game" style="height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%); border-radius: 15px; position: relative;">
-                        <div class="timing-circle" id="timingCircle" style="width: 100px; height: 100px; border: 4px solid rgba(255, 255, 255, 0.2); border-radius: 50%; position: relative; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: all 0.3s ease;">
-                            <div class="timing-indicator" id="timingIndicator" style="position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 50%; animation: rotateIndicator 2s linear infinite;"></div>
-                            <div class="perfect-zone" id="perfectZone" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; opacity: 0.8; animation: perfectZonePulse 2s ease-in-out infinite;"></div>
-                        </div>
-                        <div class="timing-score" id="timingScore" style="position: absolute; top: 10px; right: 10px; color: #fbbf24; font-weight: bold;">Score: 0/100</div>
-                    </div>
-                    <style>
-                        @keyframes rotateIndicator {
-                            from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); }
-                            to { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); }
-                        }
-                        @keyframes perfectZonePulse {
-                            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-                            50% { transform: translate(-50%, -50%) scale(1.2); }
-                        }
-                    </style>
-                `;
-                this.gameActive = false;
-                this.timingScore = 0;
-                this.timingAttempts = 0;
-            }
-
-            setupLightGame(container) {
-                container.innerHTML = `
-                    <div class="light-game">
-                        <div class="light-slider" id="lightSlider">
-                            <div class="light-handle" id="lightHandle" style="left: 85px;"></div>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay settings-modal">
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Settings</h2>
+                    <button class="close-btn" id="close-settings" data-action="close-settings">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <h3>Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Level</span>
+                                <span class="stat-value" id="total-level">1</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Actions</span>
+                                <span class="stat-value" id="total-actions">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Play Time</span>
+                                <span class="stat-value" id="play-time">0h</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Achievements</span>
+                                <span class="stat-value" id="achievements-count-settings">0</span>
+                            </div>
                         </div>
                     </div>
-                `;
-                this.gameProgress = 0;
-                this.gameActive = false;
-            }
-
-            setupMemoryGame(container) {
-                container.innerHTML = `
-                    <div class="memory-game" style="height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 15px; position: relative;">
-                        <div class="memory-grid" id="memoryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 150px; height: 150px;">
-                            <div class="memory-cell" data-id="0" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="1" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="2" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="3" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="4" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="5" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="6" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="7" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
-                            <div class="memory-cell" data-id="8" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"></div>
+                    
+                    <div class="settings-section">
+                        <h3>Preferences</h3>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="dark-theme-toggle">
+                                <span class="setting-text">Dark Mode</span>
+                            </label>
                         </div>
-                        <div class="memory-score" id="memoryScore" style="position: absolute; top: 10px; right: 10px; color: #a855f7; font-weight: bold;">Level: 1</div>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="sound-toggle" checked>
+                                <span class="setting-text">Sound Effects</span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="setting-text">Notifications</span>
+                            </label>
+                        </div>
                     </div>
-                `;
-                this.gameActive = false;
-                this.memorySequence = [];
-                this.memoryLevel = 1;
-            }
-
-            setupSpeedGame(container) {
-                container.innerHTML = `
-                    <div class="speed-game" style="height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border-radius: 15px; position: relative;">
-                        <div class="speed-target" id="speedTarget" style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">CLICK!</div>
-                        <div class="speed-score" id="speedScore" style="position: absolute; top: 10px; right: 10px; color: #ef4444; font-weight: bold;">Clicks: 0/20</div>
-                        <div class="speed-timer" id="speedTimer" style="position: absolute; top: 10px; left: 10px; color: #ef4444; font-weight: bold;">Time: 10s</div>
+                    
+                    <div class="settings-section">
+                        <h3>Contact with me</h3>
+                        <div class="contact-info">
+                            <p>TG: @msd1shka</p>
+                            <p>Version: v1.0.0</p>
+                        </div>
                     </div>
-                `;
-                this.gameActive = false;
-                this.speedClicks = 0;
-            }
+                </div>
+            </div>
+        </div>
+    </div>
 
-            setupPrecisionGame(container) {
-                container.innerHTML = `
-                    <div class="precision-game" style="height: 200px; position: relative; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%); border-radius: 15px; overflow: hidden;">
-                        <div class="precision-target" id="precisionTarget" style="position: absolute; width: 30px; height: 30px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; cursor: pointer; top: 50%; left: 20px; animation: moveTarget 3s linear infinite;"></div>
-                        <div class="precision-score" id="precisionScore" style="position: absolute; top: 10px; right: 10px; color: #22c55e; font-weight: bold;">Hits: 0/5</div>
+    <!-- Buy Me Coffee Modal -->
+    <div id="coffee-modal" class="modal-overlay coffee-modal">
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">☕ Buy Me a Coffee</h2>
+                    <button class="close-btn" id="close-coffee" data-action="close-coffee">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="coffee-content">
+                        <div class="coffee-icon">☕</div>
+                        <h3>Coming Soon!</h3>
+                        <p>Support the development of Click&Grow Premium and get exclusive rewards.</p>
+                        <div class="coffee-features">
+                            <div class="feature">✨ Exclusive Plant Skins</div>
+                            <div class="feature">🎮 Special Mini-Games</div>
+                            <div class="feature">🏆 Unique Achievements</div>
+                            <div class="feature">💎 Bonus Gems Daily</div>
+                        </div>
+                        <button class="coffee-notify-btn" id="coffee-notify-btn">
+                            <span class="btn-icon">🔔</span>
+                            <span class="btn-text">Notify When Available</span>
+                        </button>
                     </div>
-                    <style>
-                        @keyframes moveTarget {
-                            0% { left: 20px; }
-                            50% { left: calc(100% - 50px); }
-                            100% { left: 20px; }
-                        }
-                    </style>
-                `;
-                this.gameActive = false;
-                this.precisionHits = 0;
-            }
+                </div>
+            </div>
+        </div>
+    </div>
 
-            setupLightSlider() {
-                const slider = document.getElementById('lightSlider');
-                const handle = document.getElementById('lightHandle');
-                let isDragging = false;
-                
-                const handleMouseDown = (e) => {
-                    isDragging = true;
-                    e.preventDefault();
-                };
-                
-                const handleMouseMove = (e) => {
-                    if (!isDragging || !this.gameActive) return;
-                    
-                    const rect = slider.getBoundingClientRect();
-                    const x = Math.max(0, Math.min(170, e.clientX - rect.left - 15));
-                    handle.style.left = x + 'px';
-                    
-                    // Идеальная зона 80-120px (желтый цвет)
-                    const progress = Math.abs(100 - x) < 20 ? 100 : Math.max(0, 100 - Math.abs(100 - x) * 2);
-                    this.updateProgress(progress);
-                };
-                
-                const handleMouseUp = () => {
-                    isDragging = false;
-                };
-                
-                handle.addEventListener('mousedown', handleMouseDown);
-                handle.addEventListener('touchstart', handleMouseDown);
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('touchmove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-                document.addEventListener('touchend', handleMouseUp);
-            }
+    <!-- Game Modals -->
+    <div id="game-modal" class="modal-overlay game-modal">
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="game-title">Mini-Game</h2>
+                    <button class="close-btn" id="close-game" data-action="close-game">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="game-container" id="game-container">
+                        <!-- Game content will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            startMiniGame(type) {
-                this.gameActive = true;
-                this.gameProgress = 0;
-                this.updateProgress(0);
-                
-                const gameButton = document.getElementById('gameButton');
-                gameButton.disabled = true;
-                gameButton.textContent = 'Playing...';
-                
-                switch (type) {
-                    case 'watering':
-                        this.startWateringGame();
-                        break;
-                    case 'timing':
-                        this.startTimingGame();
-                        break;
-                    case 'light':
-                        this.startLightGame();
-                        break;
-                }
-            }
+    <!-- Achievement Toast -->
+    <div id="achievement-toast" class="achievement-toast">
+        <div class="toast-icon">🏆</div>
+        <div class="toast-content">
+            <div class="toast-title">Achievement Unlocked!</div>
+            <div class="toast-description" id="achievement-description"></div>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
 
-            startWateringGame() {
-                const wateringCan = document.getElementById('wateringCan');
-                const targetZone = document.getElementById('targetZone');
-                const scoreDisplay = document.getElementById('waterScore');
-                let hits = 0;
-                const maxHits = 5;
-                
-                wateringCan.onclick = () => {
-                    if (!this.gameActive) return;
-                    
-                    // Add pouring animation
-                    wateringCan.style.transform = 'translateX(-50%) rotate(45deg) scale(1.1)';
-                    
-                    // Create water drop
-                    const drop = document.createElement('div');
-                    drop.className = 'water-drop';
-                    drop.style.left = '50%';
-                    drop.style.transform = 'translateX(-50%)';
-                    wateringCan.parentElement.appendChild(drop);
-                    
-                    // Check if hit target (simplified collision detection)
-                    setTimeout(() => {
-                        const dropRect = drop.getBoundingClientRect();
-                        const targetRect = targetZone.getBoundingClientRect();
-                        
-                        if (dropRect.left < targetRect.right && dropRect.right > targetRect.left &&
-                            dropRect.bottom > targetRect.top && dropRect.top < targetRect.bottom) {
-                            hits++;
-                            this.createSuccessParticles();
-                        }
-                        
-                        scoreDisplay.textContent = `Hits: ${hits}/${maxHits}`;
-                        this.updateProgress((hits / maxHits) * 100);
-                        
-                        if (hits >= maxHits) {
-                            this.completeTask();
-                        }
-                        
-                        // Clean up
-                        if (drop.parentElement) {
-                            drop.parentElement.removeChild(drop);
-                        }
-                    }, 1400);
-                    
-                    // Reset can position
-                    setTimeout(() => {
-                        wateringCan.style.transform = 'translateX(-50%)';
-                    }, 300);
-                };
-            }
+    <!-- Action Feedback -->
+    <div id="action-feedback" class="action-feedback"></div>
 
-            startTimingGame() {
-                const timingCircle = document.getElementById('timingCircle');
-                const scoreDisplay = document.getElementById('timingScore');
-                let score = 0;
-                let attempts = 0;
-                const maxAttempts = 5;
-                
-                timingCircle.onclick = () => {
-                    if (!this.gameActive || attempts >= maxAttempts) return;
-                    
-                    attempts++;
-                    
-                    // Get indicator position (simplified)
-                    const indicator = document.getElementById('timingIndicator');
-                    const perfectZone = document.getElementById('perfectZone');
-                    
-                    // Calculate timing accuracy (simplified)
-                    const accuracy = Math.random() * 100; // In real game, calculate based on indicator position
-                    let points = 0;
-                    
-                    if (accuracy > 80) {
-                        points = 25;
-                        timingCircle.style.borderColor = '#10b981';
-                        this.createSuccessParticles();
-                    } else if (accuracy > 60) {
-                        points = 15;
-                        timingCircle.style.borderColor = '#fbbf24';
-                    } else {
-                        points = 5;
-                        timingCircle.style.borderColor = '#ef4444';
-                    }
-                    
-                    score += points;
-                    scoreDisplay.textContent = `Score: ${score}/100`;
-                    this.updateProgress(Math.min(score, 100));
-                    
-                    // Reset border color
-                    setTimeout(() => {
-                        timingCircle.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                    }, 500);
-                    
-                    if (score >= 100 || attempts >= maxAttempts) {
-                        if (score >= 80) {
-                            this.completeTask();
-                        } else {
-                            this.gameActive = false;
-                            document.getElementById('gameButton').disabled = false;
-                            document.getElementById('gameButton').textContent = 'Try Again';
-                        }
-                    }
-                };
-            }
+    <!-- Level Up Notification -->
+    <div id="level-up-notification" class="level-up-notification">
+        <div class="notification-content">
+            <div class="notification-icon">🎉</div>
+            <div class="notification-text">
+                <div class="notification-title">Level Up!</div>
+                <div class="notification-subtitle">Your plant reached level <span id="new-level">2</span>!</div>
+            </div>
+        </div>
+    </div>
 
-            startLightGame() {
-                const slider = document.getElementById('lightSlider');
-                const handle = document.getElementById('lightHandle');
-                let isDragging = false;
-                let gameTimer = 10; // 10 seconds to find perfect balance
-                
-                const gameInterval = setInterval(() => {
-                    gameTimer--;
-                    if (gameTimer <= 0) {
-                        clearInterval(gameInterval);
-                        
-                        // Check final position
-                        const handlePos = parseInt(handle.style.left) || 80;
-                        const perfectPos = 100; // Perfect position
-                        const accuracy = 100 - Math.abs(perfectPos - handlePos);
-                        
-                        this.updateProgress(Math.max(0, accuracy));
-                        
-                        if (accuracy >= 80) {
-                            this.completeTask();
-                        } else {
-                            this.gameActive = false;
-                            document.getElementById('gameButton').disabled = false;
-                            document.getElementById('gameButton').textContent = 'Try Again';
-                        }
-                    }
-                }, 1000);
-                
-                const handleMouseDown = (e) => {
-                    isDragging = true;
-                    e.preventDefault();
-                };
-                
-                const handleMouseMove = (e) => {
-                    if (!isDragging || !this.gameActive) return;
-                    
-                    const rect = slider.getBoundingClientRect();
-                    const x = Math.max(0, Math.min(170, e.clientX - rect.left - 15));
-                    handle.style.left = x + 'px';
-                    
-                    // Show real-time feedback
-                    const accuracy = 100 - Math.abs(100 - x);
-                    this.updateProgress(Math.max(0, accuracy));
-                };
-                
-                const handleMouseUp = () => {
-                    isDragging = false;
-                };
-                
-                handle.addEventListener('mousedown', handleMouseDown);
-                handle.addEventListener('touchstart', handleMouseDown);
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('touchmove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-                document.addEventListener('touchend', handleMouseUp);
-            }
-
-
-
-            createWaterDrop() {
-                const wateringGame = document.querySelector('.watering-game');
-                const drop = document.createElement('div');
-                drop.className = 'water-drop';
-                drop.style.left = '140px'; // центр лейки
-                wateringGame.appendChild(drop);
-                
-                setTimeout(() => {
-                    wateringGame.removeChild(drop);
-                }, 1500);
-            }
-
-            startTimingGame() {
-                let attempts = 0;
-                const maxAttempts = 5;
-                
-                const timingCircle = document.getElementById('timingCircle');
-                timingCircle.onclick = () => {
-                    if (!this.gameActive) return;
-                    
-                    attempts++;
-                    const indicator = document.getElementById('timingIndicator');
-                    const rect = indicator.getBoundingClientRect();
-                    const perfectZone = document.getElementById('perfectZone').getBoundingClientRect();
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(rect.left - perfectZone.left, 2) + 
-                        Math.pow(rect.top - perfectZone.top, 2)
-                    );
-                    
-                    let points = 0;
-                    if (distance < 20) points = 25;
-                    else if (distance < 40) points = 15;
-                    else if (distance < 60) points = 10;
-                    
-                    this.gameProgress += points;
-                    this.updateProgress(Math.min(100, this.gameProgress));
-                    
-                    if (this.gameProgress >= 100 || attempts >= maxAttempts) {
-                        this.completeTask();
-                    }
-                };
-            }
-
-            startLightGame() {
-                // Игра активируется через слайдер
-                setTimeout(() => {
-                    if (this.gameProgress < 80) {
-                        this.gameActive = false;
-                        document.getElementById('gameButton').disabled = false;
-                        document.getElementById('gameButton').textContent = 'Попробовать снова';
-                    }
-                }, 10000); // 10 секунд на выполнение
-            }
-
-            updateProgress(progress) {
-                this.gameProgress = progress;
-                const progressFill = document.getElementById('progressFill');
-                progressFill.style.width = progress + '%';
-                
-                if (progress >= 100) {
-                    this.completeTask();
-                }
-            }
-
-            completeTask() {
-                this.gameActive = false;
-                const today = new Date().toDateString();
-                
-                this.completedTasks[today] = true;
-                this.lastCared = new Date().toISOString();
-                this.experience += 25;
-                this.currentStreak++;
-                
-                if (this.experience >= 100) {
-                    this.growthLevel++;
-                    this.experience = 0;
-                    this.showGrowthAnimation();
-                }
-                
-                this.mood = 'happy';
-                this.saveData();
-                this.updateUI();
-                this.updatePlantVisual();
-                this.showCompletedTask();
-                this.createSuccessParticles();
-            }
-
-            showCompletedTask() {
-                const gameButton = document.getElementById('gameButton');
-                const completionMessage = document.getElementById('completionMessage');
-                const nextTasks = document.getElementById('nextTasks');
-                
-                gameButton.style.display = 'none';
-                completionMessage.style.display = 'block';
-                nextTasks.textContent = 'Возвращайтесь завтра за новым заданием!';
-                
-                document.getElementById('progressFill').style.width = '100%';
-            }
-
-            updateUI() {
-                document.getElementById('plantName').textContent = this.plantName;
-                document.getElementById('growthLevel').textContent = this.growthLevel;
-                document.getElementById('experience').textContent = this.experience;
-                
-                const plantAge = Math.floor((new Date() - new Date(this.createdDate)) / (1000 * 60 * 60 * 24));
-                document.getElementById('plantAge').textContent = plantAge;
-                
-                this.updateMoodIndicator();
-            }
-
-            updateMoodIndicator() {
-                const moodIndicator = document.getElementById('moodIndicator');
-                const plantSvg = document.getElementById('plantSvg');
-                
-                const today = new Date().toDateString();
-                const lastCared = new Date(this.lastCared || '').toDateString();
-                const daysSinceCare = Math.floor((new Date() - new Date(this.lastCared || new Date())) / (1000 * 60 * 60 * 24));
-                
-                if (this.completedTasks[today]) {
-                    this.mood = 'happy';
-                    moodIndicator.textContent = '😊';
-                    plantSvg.setAttribute('class', 'plant-svg happy');
-                } else if (daysSinceCare > 1) {
-                    this.mood = 'sad';
-                    moodIndicator.textContent = '😢';
-                    plantSvg.setAttribute('class', 'plant-svg sad');
-                } else {
-                    this.mood = 'neutral';
-                    moodIndicator.textContent = '😐';
-                    plantSvg.setAttribute('class', 'plant-svg');
-                }
-            }
-
-            checkMood() {
-                this.updateMoodIndicator();
-                
-                // Проверяем каждые 30 секунд
-                setTimeout(() => this.checkMood(), 30000);
-            }
-
-            updatePlantVisual() {
-                const stem = document.getElementById('stem');
-                const leaves = document.getElementById('leaves');
-                const flower = document.getElementById('flower');
-                const glow = document.getElementById('glow');
-                
-                // Рост стебля
-                const baseHeight = 120;
-                const stemHeight = Math.min(baseHeight + (this.growthLevel - 1) * 15, 200);
-                const stemY = 300 - stemHeight;
-                
-                stem.setAttribute('y', stemY);
-                stem.setAttribute('height', stemHeight);
-                
-                // Очищаем листья
-                leaves.innerHTML = '';
-                
-                // Добавляем листья
-                const leafCount = Math.min(Math.floor(this.growthLevel * 1.5), 12);
-                for (let i = 0; i < leafCount; i++) {
-                    const leafY = stemY + 20 + i * (stemHeight / leafCount);
-                    const leafX = 140 + (i % 2 === 0 ? -20 : 20);
-                    const leafSize = 12 + Math.random() * 8;
-                    
-                    const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-                    leaf.setAttribute('cx', leafX);
-                    leaf.setAttribute('cy', leafY);
-                    leaf.setAttribute('rx', leafSize);
-                    leaf.setAttribute('ry', leafSize * 0.7);
-                    leaf.setAttribute('fill', 'url(#leafGradient)');
-                    leaf.setAttribute('transform', `rotate(${(i % 2 === 0 ? -25 : 25)} ${leafX} ${leafY})`);
-                    
-                    // Анимация листьев
-                    leaf.style.animation = `sway ${2 + Math.random()}s ease-in-out infinite alternate`;
-                    leaf.style.animationDelay = `${Math.random() * 2}s`;
-                    
-                    leaves.appendChild(leaf);
-                }
-                
-                // Цветок появляется на высоких уровнях
-                if (this.growthLevel >= 8) {
-                    flower.setAttribute('r', '12');
-                    flower.setAttribute('opacity', '1');
-                    flower.setAttribute('cy', stemY - 5);
-                    
-                    // Свечение для высоких уровней
-                    if (this.growthLevel >= 15) {
-                        glow.setAttribute('r', '25');
-                        glow.setAttribute('opacity', '0.6');
-                        glow.setAttribute('cy', stemY - 5);
-                    }
-                }
-                
-                // Добавляем CSS анимацию покачивания листьев
-                if (!document.querySelector('#sway-animation')) {
-                    const style = document.createElement('style');
-                    style.id = 'sway-animation';
-                    style.textContent = `
-                        @keyframes sway {
-                            0% { transform: rotate(-2deg); }
-                            100% { transform: rotate(2deg); }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-            }
-
-            showGrowthAnimation() {
-                const plantSvg = document.getElementById('plantSvg');
-                plantSvg.classList.add('growing');
-                
-                // Создаем частицы роста
-                this.createGrowthParticles();
-                
-                setTimeout(() => {
-                    plantSvg.classList.remove('growing');
-                }, 800);
-            }
-
-            createSuccessParticles() {
-                const container = document.querySelector('.particles');
-                const colors = ['#4CAF50', '#8BC34A', '#CDDC39', '#FFC107'];
-                
-                for (let i = 0; i < 15; i++) {
-                    setTimeout(() => {
-                        const particle = document.createElement('div');
-                        particle.className = 'particle';
-                        particle.style.left = (45 + Math.random() * 10) + '%';
-                        particle.style.bottom = '40%';
-                        particle.style.width = particle.style.height = (4 + Math.random() * 6) + 'px';
-                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        container.appendChild(particle);
-                        
-                        setTimeout(() => {
-                            if (container.contains(particle)) {
-                                container.removeChild(particle);
-                            }
-                        }, 2000);
-                    }, i * 50);
-                }
-            }
-
-            createGrowthParticles() {
-                const container = document.querySelector('.particles');
-                const colors = ['#4CAF50', '#8BC34A', '#CDDC39'];
-                
-                for (let i = 0; i < 20; i++) {
-                    setTimeout(() => {
-                        const particle = document.createElement('div');
-                        particle.className = 'particle';
-                        particle.style.left = (40 + Math.random() * 20) + '%';
-                        particle.style.bottom = '30%';
-                        particle.style.width = particle.style.height = (3 + Math.random() * 5) + 'px';
-                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        particle.style.animation = 'float 1.5s ease-out forwards';
-                        container.appendChild(particle);
-                        
-                        setTimeout(() => {
-                            if (container.contains(particle)) {
-                                container.removeChild(particle);
-                            }
-                        }, 1500);
-                    }, i * 30);
-                }
-            }
-        }
-
-        function savePlantName() {
-            window.game.savePlantName();
-        }
-
-        function showSettings() {
-            document.getElementById('settingsModal').style.display = 'flex';
-        }
-
-        function hideSettings() {
-            document.getElementById('settingsModal').style.display = 'none';
-        }
-
-        function buyMeCoffee() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify({
-                    action: 'buy_coffee',
-                    amount: 'stars'
-                }));
-            } else {
-                alert('⭐ Thanks for wanting to support development! In Telegram this works through Telegram Stars.');
-            }
-        }
-
-        // Start the game
-        window.game = new PlantGame();
-    </script>
+    <!-- JavaScript Modules -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/plant-renderer.js"></script>
+    <script src="js/particle-system.js"></script>
+    <script src="js/minigame-system.js"></script>
+    <script src="js/challenge-system.js"></script>
+    <script src="js/achievement-system.js"></script>
+    <script src="js/telegram-integration.js"></script>
+    <script src="js/game-engine.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
