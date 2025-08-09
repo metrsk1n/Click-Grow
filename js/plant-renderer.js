@@ -234,7 +234,7 @@ class PlantRenderer {
             return;
         }
         this.renderPlant(level, plantContainer);
-        console.log(`Plant visual updated to level ${level}`);
+        // Plant visual updated
     }
 
     getPlantInfo(level) {

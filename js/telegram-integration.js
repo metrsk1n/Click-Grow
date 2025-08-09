@@ -4,7 +4,7 @@ class TelegramIntegration {
     constructor() {
         this.webApp = null;
         this.isInitialized = false;
-        console.log('📱 TelegramIntegration created');
+        // TelegramIntegration created
     }
     
     init() {
@@ -14,9 +14,9 @@ class TelegramIntegration {
                 this.webApp = Telegram.WebApp;
                 this.setupWebApp();
                 this.isInitialized = true;
-                console.log('✅ Telegram WebApp initialized');
+                // Telegram WebApp initialized
             } else {
-                console.log('⚠️ Telegram WebApp not available, running in standalone mode');
+                // Telegram WebApp not available, running in standalone mode
             }
         } catch (error) {
             console.error('❌ Telegram WebApp initialization failed:', error);
@@ -43,7 +43,7 @@ class TelegramIntegration {
         // Set up main button if needed
         this.setupMainButton();
         
-        console.log('🔗 Telegram WebApp setup complete');
+        // Telegram WebApp setup complete
     }
     
     updateThemeColors() {

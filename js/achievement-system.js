@@ -4,7 +4,7 @@ class AchievementSystem {
     constructor() {
         this.achievements = this.initializeAchievements();
         this.unlockedAchievements = this.loadUnlockedAchievements();
-        console.log('🏆 AchievementSystem initialized');
+        // AchievementSystem initialized
     }
 
     initializeAchievements() {
@@ -486,7 +486,7 @@ class AchievementSystem {
             const achievement = this.achievements[id];
             if (achievement) {
                 this.showAchievementToast(achievement);
-                console.log(`🏆 Achievement unlocked: ${achievement.name}`);
+                // Achievement unlocked
             }
         }
     }
@@ -572,7 +572,11 @@ class AchievementSystem {
     }
 
     filterAchievements(category) {
-        const achievementsContainer = document.getElementById('achievements-list');
+        // Prefer ID, but gracefully fall back to class selector to avoid empty UI
+        let achievementsContainer = document.getElementById('achievements-list');
+        if (!achievementsContainer) {
+            achievementsContainer = document.querySelector('.achievements-list');
+        }
         if (!achievementsContainer) return;
 
         const allAchievements = this.getAllAchievements();

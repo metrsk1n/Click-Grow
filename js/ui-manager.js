@@ -6,7 +6,7 @@ class UIManager {
         this.currentTab = 'plant';
         this.isInitialized = false;
         
-        console.log('🎨 UIManager created');
+        // UIManager created
     }
     
     async init() {
@@ -16,7 +16,7 @@ class UIManager {
             this.setupEventListeners();
             
             this.isInitialized = true;
-            console.log('✅ UIManager initialized');
+            // UIManager initialized
             
         } catch (error) {
             console.error('❌ UIManager initialization failed:', error);
@@ -31,6 +31,15 @@ class UIManager {
             btn.addEventListener('click', () => {
                 const tabName = btn.dataset.tab;
                 this.switchTab(tabName);
+            });
+        });
+
+        // Top navigation tabs (Home, Shop, Achievements)
+        const navTabs = document.querySelectorAll('.nav-tab');
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const name = tab.dataset.tab;
+                if (name) this.switchTab(name);
             });
         });
 
@@ -93,6 +102,55 @@ class UIManager {
                 }
                 this.closeAllModals();
             }
+        });
+
+        // Plant name: open edit modal
+        const editPlantNameBtn = document.getElementById('edit-plant-name');
+        if (editPlantNameBtn) {
+            editPlantNameBtn.addEventListener('click', () => {
+                this.openPlantNameModal();
+            });
+        }
+
+        // Plant name modal controls
+        const savePlantNameBtn = document.getElementById('save-plant-name');
+        const skipPlantNameBtn = document.getElementById('skip-plant-name');
+        const closePlantNameBtn = document.getElementById('close-plant-name');
+        const nameInput = document.getElementById('plant-name-input');
+
+        if (savePlantNameBtn && nameInput) {
+            savePlantNameBtn.addEventListener('click', () => {
+                const raw = nameInput.value.trim();
+                const name = raw.substring(0, 20);
+                if (name.length === 0) {
+                    this.showActionFeedback('❌ Name cannot be empty');
+                    return;
+                }
+                this.setPlantName(name);
+                this.closePlantNameModal();
+                this.showActionFeedback(`✅ Plant named: ${name}`, 'success');
+            });
+        }
+
+        if (skipPlantNameBtn) {
+            skipPlantNameBtn.addEventListener('click', () => {
+                this.closePlantNameModal();
+            });
+        }
+
+        if (closePlantNameBtn) {
+            closePlantNameBtn.addEventListener('click', () => {
+                this.closePlantNameModal();
+            });
+        }
+
+        // Suggested names fill input
+        document.querySelectorAll('.name-suggestion').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = btn.getAttribute('data-name') || '';
+                const input = document.getElementById('plant-name-input');
+                if (input) input.value = val;
+            });
         });
 
         // Profile actions: Export data
@@ -244,11 +302,14 @@ class UIManager {
                     break;
                 }
                 case 'details': this.showChallengeDetails(actionEl.dataset.challengeId); break;
+                case 'water': this.gameEngine?.minigameSystem?.startGame('water'); break;
+                case 'fertilizer': this.gameEngine?.minigameSystem?.startGame('fertilizer'); break;
+                case 'sunlight': this.gameEngine?.minigameSystem?.startGame('sunlight'); break;
                 default: break;
             }
         });
 
-        console.log('🔗 UI event listeners setup');
+        // UI event listeners setup complete
     }
     
     setupInitialState() {
@@ -321,13 +382,19 @@ class UIManager {
         if (tabName === 'achievements' && this.gameEngine.achievementSystem) {
             this.gameEngine.achievementSystem.filterAchievements('all');
         }
+        
+        // Ensure shop content populates immediately when entering Shop tab
+        if (tabName === 'shop') {
+            this.updateShopItems();
+            this.updateShopBalance();
+        }
     }
     
     showSettings() {
         const modal = document.getElementById('settings-modal');
         if (modal) {
             modal.classList.add('active');
-            console.log('⚙️ Settings modal opened');
+            // Settings modal opened
         }
     }
     
@@ -335,7 +402,7 @@ class UIManager {
         const modal = document.getElementById('settings-modal');
         if (modal) {
             modal.classList.remove('active');
-            console.log('⚙️ Settings modal closed');
+            // Settings modal closed
         }
     }
     
@@ -352,7 +419,7 @@ class UIManager {
                 modal.classList.remove('active');
             }
         });
-        console.log('❌ All modals closed');
+        // All modals closed
     }
     
     showActionFeedback(message, type = 'info') {
@@ -377,7 +444,7 @@ class UIManager {
             }, 300);
         }, 2000);
         
-        console.log(`💬 Action feedback: ${message}`);
+        // Action feedback shown
     }
     
     showAchievementToast(title, description) {
@@ -408,21 +475,24 @@ class UIManager {
             }, 300);
         }, 4000);
         
-        console.log(`🏆 Achievement unlocked: ${title}`);
+        // Achievement unlocked
     }
 
     showLevelUpNotification(level, rewards) {
         // Simple feedback without annoying notification
         this.showActionFeedback(`Level ${level} reached! +${rewards.coins} 💰`);
-        console.log(`🎉 Level up: Level ${level}`);
+        // Level up
     }
     
     updatePlantVisual(level) {
+        // Prevent unnecessary re-renders
+        if (this._lastPlantLevel === level) return;
+        this._lastPlantLevel = level;
+        
         const plantContainer = document.querySelector('.plant-visual');
         if (plantContainer && this.gameEngine.plantRenderer) {
             this.gameEngine.plantRenderer.renderPlant(level, plantContainer);
         }
-        console.log(`Plant visual updated to level ${level}`);
     }
     
     updateAllDisplays(gameState) {
@@ -460,6 +530,9 @@ class UIManager {
         
         // Update achievement count
         this.updateAchievementCount();
+        
+        // Update home counters (streak, daily goal)
+        this.updateDailyAndStreak(gameState);
     }
 
     updateResourceDisplay(resource, value) {
@@ -475,9 +548,25 @@ class UIManager {
     updateProgressBar(gameState) {
         const progressBar = document.getElementById('growth-progress');
         if (progressBar) {
-            const requiredExp = this.gameEngine.getRequiredExpForLevel(gameState.level + 1);
+            // Prefer engine API; fallback to local curve if not available to avoid init crash
+            const getReq = this.gameEngine && typeof this.gameEngine.getRequiredExpForLevel === 'function'
+                ? (lvl) => this.gameEngine.getRequiredExpForLevel(lvl)
+                : (lvl) => {
+                    const L = Math.max(1, Number(lvl) || 1);
+                    const base = 100; // same default curve as engine
+                    return Math.floor(base * Math.pow(1.2, L - 1));
+                };
+
+            const requiredExp = getReq(gameState.level + 1) || 1;
             const progress = gameState.level >= 240 ? 100 : (gameState.experience / requiredExp) * 100;
-            progressBar.style.width = `${Math.min(100, progress)}%`;
+            const clamped = Math.min(100, Math.max(0, progress));
+            progressBar.style.width = `${clamped}%`;
+
+            // Also update the textual percentage if present
+            const growthValue = document.getElementById('growth-value');
+            if (growthValue) {
+                growthValue.textContent = `${Math.round(clamped)}%`;
+            }
         }
     }
 
@@ -550,8 +639,8 @@ class UIManager {
                 </div>
             </div>
             <div class="shop-item-price">
-                <span class="price-amount">${item.price}</span>
-                <span class="price-icon">${item.currency === 'gems' ? '💎' : '🪙'}</span>
+                <span class="price-amount">${item.price.coins || item.price.gems || 0}</span>
+                <span class="price-icon">${item.price.gems ? '💎' : '🪙'}</span>
             </div>
             <div class="shop-item-actions">
                 <button class="shop-btn primary" data-item="${id}">Buy Now</button>
@@ -568,7 +657,7 @@ class UIManager {
                 this.updateShopBalance();
             } else {
                 if (result.reason === 'insufficient_funds') {
-                    alert('Not enough a money!/n You can earn to play the mini-game!');
+                    alert('Not Enough Money');
                 } else {
                     this.showActionFeedback(`❌ Purchase failed!`);
                 }
@@ -585,8 +674,9 @@ class UIManager {
 
     updateShopBalance() {
         const gameState = this.gameEngine.getGameState();
-        const coinsElement = document.getElementById('shop-coins');
-        const gemsElement = document.getElementById('shop-gems');
+        // Use global header counters
+        const coinsElement = document.getElementById('coins');
+        const gemsElement = document.getElementById('gems');
         
         if (coinsElement) coinsElement.textContent = gameState.coins;
         if (gemsElement) gemsElement.textContent = gameState.gems;
@@ -615,9 +705,9 @@ class UIManager {
                             <div class="detail-card">
                                 <div class="detail-icon">💰</div>
                                 <div class="detail-content">
-                                    <span class="detail-label">Price</span>
+                                    <span class="detail-label">Price: </span>
                                     <span class="detail-value price-value">
-                                        ${item.price} ${item.currency === 'gems' ? '💎' : '🪙'}
+                                        ${item.price.coins || item.price.gems} ${item.price.gems ? '💎' : '🪙'}
                                     </span>
                                 </div>
                             </div>
@@ -625,7 +715,7 @@ class UIManager {
                             <div class="detail-card">
                                 <div class="detail-icon">📦</div>
                                 <div class="detail-content">
-                                    <span class="detail-label">Category</span>
+                                    <span class="detail-label">type: </span>
                                     <span class="detail-value">${item.category}</span>
                                 </div>
                             </div>
@@ -678,7 +768,6 @@ class UIManager {
                         <button class="shop-btn primary buy-primary">
                             <span class="btn-icon">🛒</span>
                             <span class="btn-text">Buy Now</span>
-                            <span class="btn-price">${item.price} ${item.currency === 'gems' ? '💎' : '🪙'}</span>
                         </button>
                     </div>
                 </div>
@@ -850,18 +939,161 @@ class UIManager {
         }
     }
 
-    updateAchievements() {
-        const achievements = this.gameEngine.achievementSystem.getAllAchievements();
-        const achievementsContainer = document.querySelector('.achievements-list');
+    updateProfileStatistics(gameState) {
+        // Update dynamic profile statistics
+        const profileLevel = document.getElementById('profile-level');
+        const profileExperience = document.getElementById('profile-experience');
+        const profileTotalCoins = document.getElementById('profile-total-coins');
+        const profileGamesPlayed = document.getElementById('profile-games-played');
+        const profileChallenges = document.getElementById('profile-challenges');
+        const profileBestStreak = document.getElementById('profile-best-streak');
+
+        if (profileLevel) {
+            profileLevel.textContent = gameState.level || 1;
+        }
+
+        if (profileExperience) {
+            const totalExp = gameState.experience || 0;
+            profileExperience.textContent = this.formatNumber(totalExp);
+        }
+
+        if (profileTotalCoins) {
+            // Calculate total coins earned (current + spent)
+            const totalEarned = (gameState.coins || 0) + (gameState.totalCoinsSpent || 0);
+            profileTotalCoins.textContent = this.formatNumber(totalEarned);
+        }
+
+        if (profileGamesPlayed) {
+            profileGamesPlayed.textContent = gameState.statistics?.gamesPlayed || 0;
+        }
+
+        if (profileChallenges) {
+            const completedChallenges = gameState.statistics?.challengesCompleted || 0;
+            profileChallenges.textContent = completedChallenges;
+        }
+
+        if (profileBestStreak) {
+            profileBestStreak.textContent = gameState.statistics?.bestStreak || 0;
+        }
+
+        // Update garden statistics
+        this.updateGardenStatistics(gameState);
+    }
+
+    updateGardenStatistics(gameState) {
+        const gardenPlants = document.getElementById('garden-plants');
+        const gardenVarieties = document.getElementById('garden-varieties');
+        const gardenHealth = document.getElementById('garden-health');
+
+        if (gardenPlants) {
+            gardenPlants.textContent = gameState.statistics?.plantsOwned || 1;
+        }
+
+        if (gardenVarieties) {
+            gardenVarieties.textContent = gameState.statistics?.plantVarieties || 1;
+        }
+
+        if (gardenHealth) {
+            const health = Math.round(gameState.health || 100);
+            gardenHealth.textContent = `${health}%`;
+        }
+    }
+
+    updateAllDisplays(gameState) {
+        // Update main UI elements
+        this.updateProgressBar(gameState);
+        this.updateResourceDisplays(gameState);
+        this.updatePlantStats(gameState);
+        this.updateProfileStatistics(gameState);
+        this.updateShopBalance();
         
-        if (achievementsContainer) {
-            achievementsContainer.innerHTML = '';
-            
+        // Update home counters (streak, daily goal, achievements)
+        this.updateDailyAndStreak(gameState);
+        this.updateAchievementCount();
+    }
+
+    updateResourceDisplays(gameState) {
+        // Update coins and gems display
+        const coinsElements = document.querySelectorAll('.coins-value, #coins-display');
+        const gemsElements = document.querySelectorAll('.gems-value, #gems-display');
+        
+        coinsElements.forEach(el => {
+            if (el) el.textContent = this.formatNumber(gameState.coins || 0);
+        });
+        
+        gemsElements.forEach(el => {
+            if (el) el.textContent = this.formatNumber(gameState.gems || 0);
+        });
+    }
+
+    updatePlantStats(gameState) {
+        // Update plant statistics
+        const healthBar = document.getElementById('health-progress');
+        const happinessBar = document.getElementById('happiness-progress');
+        const levelDisplay = document.getElementById('level-display');
+        
+        if (healthBar) {
+            healthBar.style.width = `${Math.max(0, Math.min(100, gameState.health || 100))}%`;
+        }
+        
+        if (happinessBar) {
+            happinessBar.style.width = `${Math.max(0, Math.min(100, gameState.happiness || 100))}%`;
+        }
+        
+        if (levelDisplay) {
+            levelDisplay.textContent = gameState.level || 1;
+        }
+    }
+
+    updateAchievements() {
+        const achievementsContainer = document.querySelector('.achievements-list');
+        if (!achievementsContainer) return;
+
+        achievementsContainer.innerHTML = '';
+
+        // If system exists, render from system
+        if (this.gameEngine?.achievementSystem?.getAllAchievements) {
+            const achievements = this.gameEngine.achievementSystem.getAllAchievements();
             achievements.forEach(achievement => {
                 const achievementElement = this.createAchievementElement(achievement);
                 achievementsContainer.appendChild(achievementElement);
             });
+            return;
         }
+
+        // Fallback static achievements if system is missing
+        const fallbackAchievements = [
+            { id: 'first_water', name: 'First Water', description: 'Water your plant once', icon: '💧', rarity: 'common', reward: { coins: 10 }, current: 0, target: 1 },
+            { id: 'sun_bath', name: 'Sun Bath', description: 'Give sunlight 3 times', icon: '☀️', rarity: 'common', reward: { coins: 15 }, current: 0, target: 3 },
+            { id: 'fert_fan', name: 'Fertilizer Fan', description: 'Use fertilizer 5 times', icon: '🧪', rarity: 'uncommon', reward: { coins: 25 }, current: 0, target: 5 },
+            { id: 'daily_care', name: 'Daily Care', description: 'Open the app 7 days in a row', icon: '📅', rarity: 'rare', reward: { coins: 50, gems: 1 }, current: 0, target: 7 },
+            { id: 'happy_plant', name: 'Happy Plant', description: 'Reach 100% happiness', icon: '😊', rarity: 'rare', reward: { gems: 2 }, current: 0, target: 100 },
+            { id: 'healthy_plant', name: 'Healthy Plant', description: 'Reach 100% health', icon: '❤️', rarity: 'epic', reward: { coins: 100, gems: 3 }, current: 0, target: 100 },
+        ];
+        fallbackAchievements.forEach(a => {
+            const element = document.createElement('div');
+            element.className = `achievement-item locked ${a.rarity}`;
+            const percentage = Math.min(100, Math.round((a.current / a.target) * 100));
+            element.innerHTML = `
+                <div class="achievement-icon">${a.icon}</div>
+                <div class="achievement-info">
+                    <div class="achievement-title">${a.name}</div>
+                    <div class="achievement-description">${a.description}</div>
+                    <div class="achievement-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <span class="progress-text">${a.current}/${a.target}</span>
+                    </div>
+                </div>
+                <div class="achievement-rewards">
+                    ${a.reward?.coins ? `<div class="reward-badge">+${a.reward.coins} 🪙</div>` : ''}
+                    ${a.reward?.gems ? `<div class="reward-badge">+${a.reward.gems} 💎</div>` : ''}
+                </div>
+                <div class="achievement-rarity ${a.rarity}">${a.rarity}</div>
+            `;
+            achievementsContainer.appendChild(element);
+        });
     }
 
     createAchievementElement(achievement) {
@@ -901,6 +1133,11 @@ class UIManager {
     }
     
     formatNumber(num) {
+        // Handle non-numeric values that might cause [object] display
+        if (typeof num !== 'number' || isNaN(num)) {
+            return '0';
+        }
+        
         if (num >= 1000000) {
             return (num / 1000000).toFixed(1) + 'M';
         } else if (num >= 1000) {
@@ -965,6 +1202,58 @@ class UIManager {
         if (achievementsCountElement && this.gameEngine.achievementSystem) {
             const unlockedCount = this.gameEngine.achievementSystem.getUnlockedCount();
             achievementsCountElement.textContent = unlockedCount;
+        }
+    }
+
+    openPlantNameModal() {
+        const modal = document.getElementById('plant-name-modal');
+        const input = document.getElementById('plant-name-input');
+        if (input) {
+            input.value = this.gameEngine?.gameState?.plantName || '';
+            input.focus();
+        }
+        if (modal) modal.classList.add('active');
+    }
+
+    closePlantNameModal() {
+        const modal = document.getElementById('plant-name-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    setPlantName(name) {
+        if (!this.gameEngine) return;
+        this.gameEngine.gameState.plantName = name;
+        this.gameEngine.saveGameData();
+        const plantNameElement = document.getElementById('plant-name');
+        if (plantNameElement) plantNameElement.textContent = name;
+    }
+
+    updateDailyAndStreak(gameState) {
+        // Streak in Home header
+        const streakEl = document.getElementById('streak');
+        if (streakEl) {
+            const current = (gameState.statistics && typeof gameState.statistics.currentStreak === 'number')
+                ? gameState.statistics.currentStreak
+                : (typeof gameState.currentStreak === 'number' ? gameState.currentStreak : 0);
+            streakEl.textContent = current;
+        }
+
+        // Daily goal counter (progress/target)
+        const dailyEl = document.getElementById('daily-goal');
+        if (dailyEl) {
+            const daily = gameState.daily || {};
+            const progress = typeof daily.progress === 'number'
+                ? daily.progress
+                : (gameState.statistics && typeof gameState.statistics.dailyProgress === 'number'
+                    ? gameState.statistics.dailyProgress
+                    : 0);
+            const target = typeof daily.target === 'number'
+                ? daily.target
+                : (gameState.statistics && typeof gameState.statistics.dailyTarget === 'number'
+                    ? gameState.statistics.dailyTarget
+                    : 100);
+            const clamped = Math.max(0, Math.min(progress, target));
+            dailyEl.textContent = `${clamped}/${target}`;
         }
     }
 }

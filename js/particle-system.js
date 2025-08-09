@@ -5,13 +5,13 @@ class ParticleSystem {
         this.particles = [];
         this.container = null;
         this.isInitialized = false;
-        console.log('✨ ParticleSystem created');
+        // ParticleSystem created
     }
     
     init() {
         this.createContainer();
         this.isInitialized = true;
-        console.log('✅ ParticleSystem initialized');
+        // ParticleSystem initialized
     }
     
     createContainer() {
@@ -41,7 +41,7 @@ class ParticleSystem {
             this.createParticle(x, y, particleConfig);
         }
         
-        console.log(`✨ Created ${count} ${type} particles at (${x}, ${y})`);
+        // Particles created
     }
     
     getParticleConfig(type) {
@@ -236,7 +236,7 @@ class ParticleSystem {
             }, wave * 300);
         }
         
-        console.log(`🌟 Created focus effect at (${x}, ${y})`);
+        // Focus effect created
     }
 }
 

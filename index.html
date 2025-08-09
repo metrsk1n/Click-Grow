@@ -22,6 +22,7 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#10B981">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -88,6 +89,8 @@
                 </button>
             </div>
         </header>
+
+        
 
         <!-- Main Content Area -->
         <main class="main-content">
@@ -165,13 +168,6 @@
                         <div class="btn-cooldown" id="sunlight-cooldown"></div>
                         <div class="btn-glow"></div>
                     </button>
-                    <button class="action-btn entertain-btn" id="entertain-btn" data-action="entertain">
-                        <div class="btn-icon">🎵</div>
-                        <div class="btn-text">Entertain</div>
-                        <div class="btn-cooldown" id="entertain-cooldown"></div>
-                        <div class="btn-glow"></div>
-                    </button>
-
                 </section>
 
                 <!-- Quick Stats -->
@@ -202,30 +198,21 @@
 
             <!-- Shop Tab -->
             <section class="tab-content" id="shop-tab">
-                <div class="shop-header">
-                    <h2>🛍️ Premium Shop</h2>
-                    <p>Enhance your plant with exclusive items!</p>
-                    <div class="shop-balance">
-                        <div class="balance-item">
-                            <span class="balance-icon">🪙</span>
-                            <span class="balance-value" id="shop-coins">100</span>
-                        </div>
-                        <div class="balance-item">
-                            <span class="balance-icon">💎</span>
-                            <span class="balance-value" id="shop-gems">5</span>
-                        </div>
-                    </div>
+                <div class="section-header">
+                    <h2 class="section-title">Shop</h2>
                 </div>
-                <div class="shop-categories">
-                    <button class="category-btn active" data-category="all">All Items</button>
-                    <button class="category-btn" data-category="boosters">⚡ Boosters</button>
-                    <button class="category-btn" data-category="consumables">🧪 Consumables</button>
-                    <button class="category-btn" data-category="premium">💎 Premium</button>
-                    <button class="category-btn" data-category="cosmetics">🎨 Cosmetics</button>
-                    <button class="category-btn" data-category="special">🌟 Special</button>
+                <div class="shop-content">
+                    <div class="shop-items"></div>
                 </div>
-                <div class="shop-items" id="shop-items">
-                    <!-- Shop items will be populated by JavaScript -->
+            </section>
+
+            <!-- Achievements Tab -->
+            <section class="tab-content" id="achievements-tab">
+                <div class="section-header">
+                    <h2 class="section-title">Achievements</h2>
+                </div>
+                <div class="achievements-content">
+                    <div class="achievements-list" id="achievements-list"></div>
                 </div>
             </section>
 
@@ -236,7 +223,7 @@
                     <p data-i18n="games.subtitle">Complete challenges to earn extra rewards!</p>
                 </div>
                 <div class="games-grid" id="games-grid">
-                    <div class="game-card" data-game="water" data-action="start-game">
+                    <div class="game-card">
                         <div class="game-visual">
                             <div class="game-icon">💧</div>
                             <div class="game-particles"></div>
@@ -250,11 +237,11 @@
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
+                            <button class="play-btn" data-action="start-game" data-game="water" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
-                    <div class="game-card" data-game="fertilizer" data-action="start-game">
+                    <div class="game-card">
                         <div class="game-visual">
                             <div class="game-icon">🌿</div>
                             <div class="game-particles"></div>
@@ -268,7 +255,7 @@
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
+                            <button class="play-btn" data-action="start-game" data-game="fertilizer" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -286,11 +273,11 @@
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
+                            <button class="play-btn" data-action="start-game" data-game="sunlight" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
-                    <div class="game-card" data-game="puzzle" data-action="start-game">
+                    <div class="game-card">
                         <div class="game-visual">
                             <div class="game-icon">🧩</div>
                             <div class="game-particles"></div>
@@ -304,25 +291,25 @@
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-action="start-game" data-game="puzzle" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
-                    <div class="game-card" data-game="speed" data-action="start-game">
+                    <div class="game-card">
                         <div class="game-visual">
                             <div class="game-icon">⚡</div>
                             <div class="game-particles"></div>
                         </div>
                         <div class="game-info">
-                            <h3>Speed Harvest</h3>
-                            <p>Quickly harvest crops before they disappear!</p>
+                            <h3>Speed Planting</h3>
+                            <p>Plant seeds as fast as you can!</p>
                             <div class="game-stats">
                                 <span class="difficulty">Hard</span>
                                 <span class="reward">+15 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
+                            <button class="play-btn" data-action="start-game" data-game="speed" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -375,34 +362,7 @@
                 </div>
             </section>
 
-            <!-- Achievements Tab -->
-            <section class="tab-content" id="achievements-tab">
-                <div class="achievements-header">
-                    <h2>🏆 Achievements</h2>
-                    <p>Unlock achievements to earn special rewards!</p>
-                    <div class="achievement-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="achievement-progress-fill"></div>
-                        </div>
-                        <div class="progress-text">
-                            <span id="achievements-unlocked">0</span> / <span id="achievements-total">0</span> unlocked
-                        </div>
-                    </div>
-                </div>
-                <div class="achievements-categories">
-                    <button class="achievement-category active" data-category="all">All</button>
-                    <button class="achievement-category" data-category="growth">Growth</button>
-                    <button class="achievement-category" data-category="actions">Actions</button>
-                    <button class="achievement-category" data-category="games">Games</button>
-                    <button class="achievement-category" data-category="challenges">Challenges</button>
-                    <button class="achievement-category" data-category="streaks">Streaks</button>
-                    <button class="achievement-category" data-category="rare">Rare</button>
-                </div>
-                <div class="achievements-list" id="achievements-list">
-                    <!-- Achievements will be populated by JavaScript -->
-                </div>
-            </section>
-
+          
             <!-- Profile Tab -->
             <section class="tab-content" id="profile-tab">
                 <div class="profile-header">
@@ -852,6 +812,37 @@
                             <span class="btn-icon">🔗</span>
                             <span class="btn-text">Open Donation Alerts</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minigame Modal -->
+    <div id="minigame-modal" class="modal">
+        <div class="modal-content minigame-content">
+            
+                <!-- Fertilizer Game -->
+                <div class="fertilizer-game" style="display: none;">
+                    <div class="formula-display">
+                        <div class="target-formula" id="target-formula"></div>
+                        <div class="current-formula" id="current-formula"></div>
+                    </div>
+                    <div class="fertilizer-elements"></div>
+                    <div class="game-ui">
+                        <div class="score">Score: <span id="fertilizer-score">0</span></div>
+                        <div class="timer">Time: <span id="fertilizer-timer">45</span>s</div>
+                    </div>
+                </div>
+                
+                <!-- Sunlight Game -->
+                <div class="sunlight-game" style="display: none;">
+                    <div class="sun-beam" id="sun-beam"></div>
+                    <div class="sunlight-obstacles"></div>
+                    <div class="game-ui">
+                        <div class="score">Score: <span id="sunlight-score">0</span></div>
+                        <div class="timer">Time: <span id="sunlight-timer">40</span>s</div>
+                        <div class="instructions">Move the sun beam to avoid clouds!</div>
                     </div>
                 </div>
             </div>

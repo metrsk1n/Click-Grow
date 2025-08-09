@@ -11,11 +11,11 @@ class MinigameSystem {
         // Nerfed duration for snappier, fair rounds (was 30000)
         this.gameDuration = 20000; // 20 seconds
         
-        console.log('🎮 MinigameSystem initialized');
+        // MinigameSystem initialized
     }
 
     init() {
-        console.log('🎮 MinigameSystem ready');
+        // MinigameSystem ready
     }
     
     startGame(gameId) {
@@ -131,26 +131,32 @@ class MinigameSystem {
     }
     
     startWateringGame() {
-        const gameArea = document.getElementById('game-area');
-        const instructions = document.getElementById('game-instructions');
+        this.gameType = 'water';
+        this.score = 0;
+        this.timeLeft = 30;
         
-        instructions.textContent = 'Click the water drops when they are over the plant!';
+        // Show watering game container
+        const waterGame = document.querySelector('.watering-game');
+        if (waterGame) {
+            waterGame.style.display = 'block';
+        }
         
-        gameArea.innerHTML = `
-            <div class="watering-game">
-                <div class="plant-target">🌱</div>
-                <div class="water-drops"></div>
-            </div>
-        `;
+        // Update UI
+        this.updateGameUI();
         
         // Start spawning water drops
         this.spawnWaterDrops();
+        
+        // Start timer
+        this.startGameTimer();
     }
     
     spawnWaterDrops() {
         if (!this.isPlaying) return;
         
         const dropsContainer = document.querySelector('.water-drops');
+        if (!dropsContainer) return; // Safety check
+        
         const drop = document.createElement('div');
         drop.className = 'water-drop';
         drop.innerHTML = '💧';
@@ -173,18 +179,25 @@ class MinigameSystem {
             drop.remove();
         };
         
-        // Click handler
+        // Click handler for scoring
         drop.addEventListener('click', () => {
             this.score += 10;
-            this.updateScore();
+            this.updateGameUI();
             drop.remove();
             
-            // Visual feedback
-            this.showScorePopup(drop, '+10');
+            // Particle effect
+            if (this.gameEngine.particleSystem) {
+                this.gameEngine.particleSystem.createParticles('water', {
+                    x: parseFloat(drop.style.left),
+                    y: 50
+                });
+            }
         });
         
         // Spawn next drop
-        setTimeout(() => this.spawnWaterDrops(), Math.random() * 1000 + 500);
+        if (this.isPlaying) {
+            setTimeout(() => this.spawnWaterDrops(), 800 + Math.random() * 400);
+        }
     }
     
     startFertilizerGame() {

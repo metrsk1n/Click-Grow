@@ -22,7 +22,7 @@ class ChallengeSystem {
     // Initialize the challenge system (called by GameEngine)
     async init() {
         try {
-            console.log('🏆 ChallengeSystem initializing...');
+            // ChallengeSystem initializing
             
             // Check for daily/weekly/monthly resets
             this.checkResets();
@@ -33,7 +33,7 @@ class ChallengeSystem {
             // Start periodic UI timer refresh for countdowns
             this.startUITimer();
             
-            console.log('✅ ChallengeSystem initialized successfully');
+            // ChallengeSystem initialized successfully
         } catch (error) {
             console.error('❌ ChallengeSystem initialization failed:', error);
             throw error;
@@ -453,7 +453,7 @@ class ChallengeSystem {
         
         this.updateUI();
         
-        console.log(`🎯 Challenge completed: ${challenge.name}`);
+        // Challenge completed
     }
     
     giveChallengeRewards(challenge) {

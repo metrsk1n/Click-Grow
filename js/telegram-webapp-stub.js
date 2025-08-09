@@ -46,7 +46,7 @@
         initData: '',
         initDataUnsafe: {},
         sendData: noop,
-        showAlert: message => console.log('[TelegramStub] Alert:', message),
+        showAlert: message => alert(message),
         showConfirm: (message, cb) => {
             const res = confirm(message);
             cb && cb(res);
@@ -58,5 +58,5 @@
     };
 
     window.Telegram = { WebApp: webAppStub };
-    console.log('⚙️ Loaded Telegram WebApp stub (offline mode)');
+    // Loaded Telegram WebApp stub (offline mode)
 })();

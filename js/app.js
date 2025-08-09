@@ -7,12 +7,12 @@ class ClickAndGrowApp {
         this.currentTheme = 'light';
         this.isInitialized = false;
         
-        console.log('🌱 Click&Grow Premium v1.0.0 starting...');
+        // Click&Grow Premium v0.0.5a starting
     }
     
     async init() {
         try {
-            console.log('🚀 Initializing Click&Grow Premium...');
+            // Initializing Click&Grow Premium
             
             // Initialize Telegram integration first
             this.telegramIntegration = new TelegramIntegration();
@@ -21,6 +21,12 @@ class ClickAndGrowApp {
             // Initialize game engine
             this.gameEngine = new GameEngine();
             await this.gameEngine.init();
+            
+            // Expose for systems expecting window.app.gameEngine
+            if (typeof window !== 'undefined') {
+                window.app = window.app || {};
+                window.app.gameEngine = this.gameEngine;
+            }
             
             // Initialize UI manager with game engine
             this.gameEngine.uiManager = new UIManager(this.gameEngine);
@@ -41,14 +47,16 @@ class ClickAndGrowApp {
             // Show the app
             this.showApp();
             
-            // Update UI
-            this.gameEngine.updateUI();
+            // Update UI - now safe since UIManager is fully initialized
+            if (this.gameEngine.uiManager && this.gameEngine.uiManager.isInitialized) {
+                this.gameEngine.updateUI();
+            }
             
             // Force update achievements
             this.gameEngine.achievementSystem.filterAchievements('all');
             
             this.isInitialized = true;
-            console.log('✅ Click&Grow Premium initialized successfully');
+            // Click&Grow Premium initialized successfully
             
         } catch (error) {
             console.error('❌ App initialization failed:', error);
@@ -98,13 +106,13 @@ class ClickAndGrowApp {
     }
     
     loadGamesContent() {
-        console.log('🎮 Loading games content...');
+        // Loading games content
         // Games content loading logic will be implemented here
         // For now, just log that it's called to prevent errors
     }
     
     loadChallengesContent() {
-        console.log('🏆 Loading challenges content...');
+        // Loading challenges content
         // Challenges content loading logic will be implemented here
         // For now, just log that it's called to prevent errors
     }
@@ -144,7 +152,7 @@ class ClickAndGrowApp {
                 });
             });
             
-            console.log('🔗 Event listeners setup complete');
+            // Event listeners setup complete
         }
     }
     
@@ -155,15 +163,11 @@ class ClickAndGrowApp {
             // Add haptic feedback
             this.telegramIntegration.impactOccurred('medium');
             
-            const result = await this.gameEngine.performAction(actionType);
+            // Call GameEngine performAction directly (UIManager doesn't have performAction method)
+            this.gameEngine.performAction(actionType);
             
-            if (result.success) {
-                // Add haptic feedback for success
-                this.telegramIntegration.notificationOccurred('success');
-            } else {
-                // Add haptic feedback for failure
-                this.telegramIntegration.impactOccurred('heavy');
-            }
+            // Add haptic feedback for success
+            this.telegramIntegration.notificationOccurred('success');
             
         } catch (error) {
             console.error('Action failed:', error);
@@ -209,7 +213,7 @@ window.testAchievements = () => {
     if (app && app.gameEngine) {
         app.testAchievement();
     } else {
-        console.log('❌ App not initialized');
+        // App not initialized
     }
 };
 
@@ -225,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Make app globally available for debugging
     window.app = app;
     
-    console.log('🚀 Click&Grow Premium is ready!');
+    // Click&Grow Premium is ready
 });
 
 // Handle page visibility changes
