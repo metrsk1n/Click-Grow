@@ -569,7 +569,118 @@ class AchievementSystem {
     resetAchievements() {
         this.unlockedAchievements = [];
         this.saveUnlockedAchievements();
-        console.log('🔄 Achievements reset');
+    }
+
+    filterAchievements(category) {
+        const achievementsContainer = document.getElementById('achievements-list');
+        if (!achievementsContainer) return;
+
+        const allAchievements = this.getAllAchievements();
+        let filteredAchievements = [];
+
+        switch (category) {
+            case 'all':
+                filteredAchievements = allAchievements;
+                break;
+            case 'growth':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.requirement.type === 'level' || 
+                    a.requirement.type === 'experience'
+                );
+                break;
+            case 'actions':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.requirement.type === 'actions' || 
+                    a.requirement.type === 'water' || 
+                    a.requirement.type === 'fertilizer' || 
+                    a.requirement.type === 'sunlight'
+                );
+                break;
+            case 'games':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.requirement.type === 'minigames' || 
+                    a.requirement.type === 'games'
+                );
+                break;
+            case 'challenges':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.requirement.type === 'challenges'
+                );
+                break;
+            case 'streaks':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.requirement.type === 'streak' || 
+                    a.requirement.type === 'consecutive'
+                );
+                break;
+            case 'rare':
+                filteredAchievements = allAchievements.filter(a => 
+                    a.rarity === 'rare' || 
+                    a.rarity === 'epic' || 
+                    a.rarity === 'legendary' || 
+                    a.rarity === 'mythic' || 
+                    a.rarity === 'divine' || 
+                    a.rarity === 'cosmic' || 
+                    a.rarity === 'eternal'
+                );
+                break;
+            default:
+                filteredAchievements = allAchievements;
+        }
+
+        this.renderAchievements(achievementsContainer, filteredAchievements);
+    }
+
+    renderAchievements(container, achievements = null) {
+        if (!achievements) {
+            achievements = this.getAllAchievements();
+        }
+
+        container.innerHTML = '';
+
+        if (achievements.length === 0) {
+            container.innerHTML = `
+                <div class="no-achievements">
+                    <div class="no-achievements-icon">🏆</div>
+                    <div class="no-achievements-text">No achievements found</div>
+                    <div class="no-achievements-subtext">Try a different category!</div>
+                </div>
+            `;
+            return;
+        }
+
+        achievements.forEach(achievement => {
+            const isUnlocked = this.isUnlocked(achievement.id);
+            const gameState = window.app?.gameEngine?.getGameState() || { level: 1, actionCounts: {}, totalExp: 0, totalCoinsEarned: 0, minigamesCompleted: 0, challenges: { completed: [] } };
+            const progress = this.getAchievementProgress(achievement.id, gameState);
+
+            // Get localized rarity label
+            const rarityLabel = window.i18n ? window.i18n.t(`achievements.rarity.${achievement.rarity}`) : achievement.rarity;
+            
+            const achievementElement = document.createElement('div');
+            achievementElement.className = `achievement-item ${isUnlocked ? 'unlocked' : 'locked'} ${achievement.rarity}`;
+            achievementElement.innerHTML = `
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-info">
+                    <div class="achievement-title">${achievement.name}</div>
+                    <div class="achievement-description">${achievement.description}</div>
+                    <div class="achievement-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress.percentage}%"></div>
+                        </div>
+                        <span class="progress-text">${progress.current}/${progress.target}</span>
+                    </div>
+                </div>
+                <div class="achievement-rewards">
+                    ${achievement.reward.coins ? `<div class="reward-badge">+${achievement.reward.coins} 🪙</div>` : ''}
+                    ${achievement.reward.exp ? `<div class="reward-badge">+${achievement.reward.exp} ⭐</div>` : ''}
+                    ${achievement.reward.gems ? `<div class="reward-badge">+${achievement.reward.gems} 💎</div>` : ''}
+                </div>
+                <div class="achievement-rarity ${achievement.rarity}">${rarityLabel}</div>
+            `;
+            
+            container.appendChild(achievementElement);
+        });
     }
 }
 

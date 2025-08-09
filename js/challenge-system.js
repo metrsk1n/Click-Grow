@@ -12,6 +12,8 @@ class ChallengeSystem {
             weekly: 0,
             monthly: 0
         };
+        // UI timer interval for updating countdowns
+        this.timerInterval = null;
         
         this.initializeChallenges();
         this.loadChallengeData();
@@ -27,6 +29,9 @@ class ChallengeSystem {
             
             // Update UI if available
             this.updateUI();
+            
+            // Start periodic UI timer refresh for countdowns
+            this.startUITimer();
             
             console.log('✅ ChallengeSystem initialized successfully');
         } catch (error) {
@@ -446,6 +451,8 @@ class ChallengeSystem {
         
         this.saveChallengeData();
         
+        this.updateUI();
+        
         console.log(`🎯 Challenge completed: ${challenge.name}`);
     }
     
@@ -502,15 +509,153 @@ class ChallengeSystem {
         return this.challenges.get(challengeId);
     }
     
+    isChallengeCompleted(challengeId) {
+        return this.completedChallenges.has(challengeId);
+    }
+    
+    claimChallengeReward(challengeId) {
+        const challenge = this.getChallenge(challengeId);
+        if (!challenge || !this.isChallengeCompleted(challengeId)) {
+            return { success: false, reason: 'Challenge not completed or not found' };
+        }
+        
+        // Give rewards
+        this.giveChallengeRewards(challenge);
+        
+        // Remove from completed challenges (if it's a one-time claim)
+        this.completedChallenges.delete(challengeId);
+        
+        return { success: true };
+    }
+    
     startChallenge(challengeId) {
         const challenge = this.challenges.get(challengeId);
         if (!challenge || challenge.status !== 'active') return false;
         
-        // Mark as activated
-        challenge.activatedAt = Date.now();
+        // If already started, do nothing
+        if (challenge.activatedAt) return true;
+        
+        // Mark as activated and track
+        const now = Date.now();
+        challenge.activatedAt = now;
         this.activeChallenges.set(challengeId, challenge);
         
+        // Record activation in history if missing
+        const existing = this.challengeHistory.find(h => h.challengeId === challengeId && h.activatedAt);
+        if (!existing) {
+            this.challengeHistory.push({ challengeId, activatedAt: now });
+        } else {
+            existing.activatedAt = now;
+        }
+        
+        // Persist and refresh UI
+        this.saveChallengeData();
+        this.updateUI();
+        
+        // Ensure UI timer is running
+        this.startUITimer();
+        
         return true;
+    }
+    
+    getTimeLeft(challengeId) {
+        const challenge = this.challenges.get(challengeId);
+        if (!challenge || !challenge.duration) return null;
+        
+        // Only show timer after the user has explicitly started the challenge
+        if (!challenge.activatedAt) return null;
+        
+        const now = Date.now();
+        const endTime = challenge.activatedAt + challenge.duration;
+        const timeLeft = endTime - now;
+        
+        if (timeLeft <= 0) return 'Expired';
+        
+        const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+        const hours = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        
+        if (days > 0) return `${days}d ${hours}h`;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        return `${minutes}m`;
+    }
+    
+    updateUI() {
+        // Update challenges display if UI is available
+        const challengesContainer = document.querySelector('.challenges-list');
+        if (challengesContainer) {
+            this.renderChallenges(challengesContainer);
+        }
+    }
+    
+    // Periodically refresh UI to update countdown timers
+    startUITimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        // Refresh every 30 seconds for smoother UX (lightweight re-render)
+        this.timerInterval = setInterval(() => {
+            // Only update if there are started challenges
+            const anyStarted = Array.from(this.challenges.values()).some(c => c.activatedAt && c.status === 'active');
+            if (anyStarted) this.updateUI();
+        }, 30000);
+    }
+    
+    renderChallenges(container) {
+        const activeChallenges = this.getActiveChallenges();
+        
+        container.innerHTML = '';
+        
+        if (activeChallenges.length === 0) {
+            container.innerHTML = `
+                <div class="no-challenges">
+                    <div class="no-challenges-icon">🎯</div>
+                    <div class="no-challenges-text">No active challenges</div>
+                    <div class="no-challenges-subtext">Check back later for new challenges!</div>
+                </div>
+            `;
+            return;
+        }
+        
+        activeChallenges.forEach(challenge => {
+            const progress = this.getChallengeProgress(challenge.id);
+            const started = !!challenge.activatedAt;
+            const timeLeft = this.getTimeLeft(challenge.id);
+            
+            const challengeElement = document.createElement('div');
+            challengeElement.className = `challenge-card ${challenge.type}`;
+            challengeElement.innerHTML = `
+                <div class="challenge-header">
+                    <div class="challenge-icon">${challenge.icon}</div>
+                    <div class="challenge-info">
+                        <div class="challenge-title">${challenge.name}</div>
+                        <div class="challenge-description">${challenge.description}</div>
+                    </div>
+                </div>
+                <div class="challenge-progress">
+                    <div class="progress-header">
+                        <span class="progress-text">Progress</span>
+                        <span class="progress-percentage">${Math.round(progress)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">${challenge.current}/${challenge.target}</div>
+                </div>
+                ${started && timeLeft ? `<div class="challenge-timer">⏰ Time left: ${timeLeft}</div>` : ''}
+                <div class="challenge-rewards">
+                    ${challenge.rewards.map(reward => 
+                        `<div class="reward-badge">+${reward.amount} ${reward.icon}</div>`
+                    ).join('')}
+                </div>
+                <div class="challenge-actions">
+                    ${started
+                        ? `<button class="challenge-btn primary" data-challenge-id="${challenge.id}" disabled>In progress</button>`
+                        : `<button class="challenge-btn primary" data-challenge-id="${challenge.id}" data-action="start">Start</button>`}
+                    <button class="challenge-btn secondary" data-challenge-id="${challenge.id}" data-action="details">Details</button>
+                </div>
+            `;
+            
+            container.appendChild(challengeElement);
+        });
     }
     
     getChallengeStats() {
@@ -540,25 +685,6 @@ class ChallengeSystem {
         }
         
         return stats;
-    }
-    
-    getTimeLeft(challengeId) {
-        const challenge = this.challenges.get(challengeId);
-        if (!challenge || !challenge.duration) return null;
-        
-        const now = Date.now();
-        const endTime = challenge.createdAt + challenge.duration;
-        const timeLeft = endTime - now;
-        
-        if (timeLeft <= 0) return 'Expired';
-        
-        const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
-        const hours = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-        
-        if (days > 0) return `${days}d ${hours}h`;
-        if (hours > 0) return `${hours}h ${minutes}m`;
-        return `${minutes}m`;
     }
     
     resetDailyChallenges() {
@@ -674,14 +800,6 @@ class ChallengeSystem {
         this.saveChallengeData();
     }
     
-    updateUI() {
-        // Update challenges display if UI is available
-        const challengesContainer = document.querySelector('.challenges-list');
-        if (challengesContainer) {
-            this.renderChallenges(challengesContainer);
-        }
-    }
-    
     checkResets() {
         // Check if daily challenges need reset
         const now = Date.now();
@@ -710,62 +828,6 @@ class ChallengeSystem {
             this.resetMonthlyChallenges();
             this.lastResetTime.monthly = now;
         }
-    }
-    
-    renderChallenges(container) {
-        const activeChallenges = this.getActiveChallenges();
-        
-        container.innerHTML = '';
-        
-        if (activeChallenges.length === 0) {
-            container.innerHTML = `
-                <div class="no-challenges">
-                    <div class="no-challenges-icon">🎯</div>
-                    <div class="no-challenges-text">No active challenges</div>
-                    <div class="no-challenges-subtext">Check back later for new challenges!</div>
-                </div>
-            `;
-            return;
-        }
-        
-        activeChallenges.forEach(challenge => {
-            const progress = this.getChallengeProgress(challenge.id);
-            const timeLeft = this.getTimeLeft(challenge.id);
-            
-            const challengeElement = document.createElement('div');
-            challengeElement.className = `challenge-card ${challenge.type}`;
-            challengeElement.innerHTML = `
-                <div class="challenge-header">
-                    <div class="challenge-icon">${challenge.icon}</div>
-                    <div class="challenge-info">
-                        <div class="challenge-title">${challenge.name}</div>
-                        <div class="challenge-description">${challenge.description}</div>
-                    </div>
-                </div>
-                <div class="challenge-progress">
-                    <div class="progress-header">
-                        <span class="progress-text">Progress</span>
-                        <span class="progress-percentage">${Math.round(progress)}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
-                    </div>
-                    <div class="progress-text">${challenge.current}/${challenge.target}</div>
-                </div>
-                ${timeLeft ? `<div class="challenge-timer">⏰ Time left: ${timeLeft}</div>` : ''}
-                <div class="challenge-rewards">
-                    ${challenge.rewards.map(reward => 
-                        `<div class="reward-badge">+${reward.amount} ${reward.icon}</div>`
-                    ).join('')}
-                </div>
-                <div class="challenge-actions">
-                    <button class="challenge-btn primary" data-challenge-id="${challenge.id}" data-action="start">Start</button>
-                    <button class="challenge-btn secondary" data-challenge-id="${challenge.id}" data-action="details">Details</button>
-                </div>
-            `;
-            
-            container.appendChild(challengeElement);
-        });
     }
 }
 
@@ -821,4 +883,4 @@ document.head.appendChild(challengeStyles);
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChallengeSystem;
-} 
+}

@@ -214,6 +214,30 @@ class ParticleSystem {
             }, index * 100);
         });
     }
+
+    createFocusEffect(x, y) {
+        // Create a special focus particle effect
+        const focusConfig = {
+            emoji: ['🌟', '✨', '💫', '⭐'],
+            colors: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
+            size: { min: 16, max: 24 },
+            speed: { min: 2, max: 4 },
+            life: { min: 2000, max: 3000 },
+            gravity: -0.02,
+            spread: 100
+        };
+        
+        // Create multiple waves of focus particles
+        for (let wave = 0; wave < 3; wave++) {
+            setTimeout(() => {
+                for (let i = 0; i < 8; i++) {
+                    this.createParticle(x, y, focusConfig);
+                }
+            }, wave * 300);
+        }
+        
+        console.log(`🌟 Created focus effect at (${x}, ${y})`);
+    }
 }
 
 // Export

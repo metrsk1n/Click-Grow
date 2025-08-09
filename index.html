@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click&Grow Premium v1.0.0 - Ultimate Plant Care Experience</title>
+    <title>Click&Grow Premium v0.0.5a - Ultimate Plant Care Experience</title>
     
     <!-- Telegram WebApp Integration -->
     <!-- Offline-compatible: using local stub to avoid external dependency. Telegram API will be available in Telegram client. -->
@@ -41,7 +41,7 @@
                 <div class="logo-glow"></div>
             </div>
             <div class="loading-text">Click&Grow Premium</div>
-                            <div class="loading-version">v1.0.0</div>
+                            <div class="loading-version">v0.0.5a</div>
             <div class="loading-progress">
                 <div class="progress-bar"></div>
             </div>
@@ -95,15 +95,20 @@
             <section class="tab-content active" id="home-tab">
                 <!-- Plant Stage -->
                 <div class="plant-stage" id="plant-stage">
-                    <div class="plant-container" id="plant-container">
-                        <div class="plant-visual" id="plant-visual">
-                            <!-- Realistic plant SVG will be rendered here -->
-                        </div>
-                        <div class="plant-effects" id="plant-effects">
-                            <!-- Particle effects -->
-                        </div>
-                        <div class="plant-glow"></div>
+                                    <div class="plant-container" id="plant-container">
+                    <div class="plant-name-display">
+                        <div class="plant-name-text" id="plant-name">Sprout</div>
+                        <div class="plant-name-label">Your Plant</div>
+                        <button class="edit-plant-name" id="edit-plant-name" title="Edit plant name">✏️</button>
                     </div>
+                    <div class="plant-visual" id="plant-visual">
+                        <!-- Realistic plant SVG will be rendered here -->
+                    </div>
+                    <div class="plant-effects" id="plant-effects">
+                        <!-- Particle effects -->
+                    </div>
+                    <div class="plant-glow"></div>
+                </div>
                     
                     <!-- Plant Stats -->
                     <div class="plant-stats">
@@ -130,7 +135,7 @@
                         <div class="stat-bar">
                             <div class="stat-label">
                                 <span class="stat-icon">🌱</span>
-                                <span class="stat-name">Growth</span>
+                                <span class="stat-name" data-i18n="common.growth">Growth</span>
                             </div>
                             <div class="stat-progress">
                                 <div class="progress-fill growth-progress" id="growth-progress"></div>
@@ -144,20 +149,26 @@
                 <section class="action-panel">
                     <button class="action-btn water-btn" id="water-btn" data-action="water">
                         <div class="btn-icon">💧</div>
-                        <div class="btn-text">Water</div>
+                        <div class="btn-text" data-i18n="actions.water">Water</div>
                         <div class="btn-cooldown" id="water-cooldown"></div>
                         <div class="btn-glow"></div>
                     </button>
                     <button class="action-btn fertilizer-btn" id="fertilizer-btn" data-action="fertilizer">
                         <div class="btn-icon">🌰</div>
-                        <div class="btn-text">Fertilize</div>
+                        <div class="btn-text" data-i18n="actions.fertilizer">Fertilize</div>
                         <div class="btn-cooldown" id="fertilizer-cooldown"></div>
                         <div class="btn-glow"></div>
                     </button>
                     <button class="action-btn sunlight-btn" id="sunlight-btn" data-action="sunlight">
                         <div class="btn-icon">☀️</div>
-                        <div class="btn-text">Sunlight</div>
+                        <div class="btn-text" data-i18n="actions.sunlight">Sunlight</div>
                         <div class="btn-cooldown" id="sunlight-cooldown"></div>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="action-btn entertain-btn" id="entertain-btn" data-action="entertain">
+                        <div class="btn-icon">🎵</div>
+                        <div class="btn-text">Entertain</div>
+                        <div class="btn-cooldown" id="entertain-cooldown"></div>
                         <div class="btn-glow"></div>
                     </button>
 
@@ -169,21 +180,21 @@
                         <div class="stat-icon">🎯</div>
                         <div class="stat-info">
                             <div class="stat-value" id="daily-goal">0/100</div>
-                            <div class="stat-label">Daily Goal</div>
+                            <div class="stat-label" data-i18n="daily-goal">Daily Goal</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🔥</div>
                         <div class="stat-info">
                             <div class="stat-value" id="streak">0</div>
-                            <div class="stat-label">Day Streak</div>
+                            <div class="stat-label" data-i18n="streak">Day Streak</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🏆</div>
                         <div class="stat-info">
                             <div class="stat-value" id="achievements-count">0</div>
-                            <div class="stat-label">Achievements</div>
+                            <div class="stat-label" data-i18n="achievements.title">Achievements</div>
                         </div>
                     </div>
                 </section>
@@ -192,15 +203,26 @@
             <!-- Shop Tab -->
             <section class="tab-content" id="shop-tab">
                 <div class="shop-header">
-                    <h2>🛍️ Plant Shop</h2>
-                    <p>Enhance your plant with special items!</p>
+                    <h2>🛍️ Premium Shop</h2>
+                    <p>Enhance your plant with exclusive items!</p>
+                    <div class="shop-balance">
+                        <div class="balance-item">
+                            <span class="balance-icon">🪙</span>
+                            <span class="balance-value" id="shop-coins">100</span>
+                        </div>
+                        <div class="balance-item">
+                            <span class="balance-icon">💎</span>
+                            <span class="balance-value" id="shop-gems">5</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="shop-categories">
-                    <button class="category-btn active" data-category="all">All</button>
-                    <button class="category-btn" data-category="boosters">Boosters</button>
-                    <button class="category-btn" data-category="consumables">Consumables</button>
-                    <button class="category-btn" data-category="premium">Premium</button>
-                    <button class="category-btn" data-category="cosmetics">Cosmetics</button>
+                    <button class="category-btn active" data-category="all">All Items</button>
+                    <button class="category-btn" data-category="boosters">⚡ Boosters</button>
+                    <button class="category-btn" data-category="consumables">🧪 Consumables</button>
+                    <button class="category-btn" data-category="premium">💎 Premium</button>
+                    <button class="category-btn" data-category="cosmetics">🎨 Cosmetics</button>
+                    <button class="category-btn" data-category="special">🌟 Special</button>
                 </div>
                 <div class="shop-items" id="shop-items">
                     <!-- Shop items will be populated by JavaScript -->
@@ -210,8 +232,8 @@
             <!-- Games Tab -->
             <section class="tab-content" id="games-tab">
                 <div class="games-header">
-                    <h2>🎮 Mini-Games</h2>
-                    <p>Complete challenges to earn extra rewards!</p>
+                    <h2 data-i18n="games.title">🎮 Mini-Games</h2>
+                    <p data-i18n="games.subtitle">Complete challenges to earn extra rewards!</p>
                 </div>
                 <div class="games-grid" id="games-grid">
                     <div class="game-card" data-game="water" data-action="start-game">
@@ -220,15 +242,15 @@
                             <div class="game-particles"></div>
                         </div>
                         <div class="game-info">
-                            <h3>Precision Watering</h3>
-                            <p>Click when the water drop is over the plant!</p>
+                            <h3 data-i18n="games.precision-watering">Precision Watering</h3>
+                            <p data-i18n="games.precision-watering-desc">Click when the water drop is over the plant!</p>
                             <div class="game-stats">
-                                <span class="difficulty">Easy</span>
+                                <span class="difficulty" data-i18n="games.difficulty.easy">Easy</span>
                                 <span class="reward">+5 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -238,15 +260,15 @@
                             <div class="game-particles"></div>
                         </div>
                         <div class="game-info">
-                            <h3>Fertilizer Mix</h3>
-                            <p>Match the fertilizer recipe pattern!</p>
+                            <h3 data-i18n="games.fertilizer-mix">Fertilizer Mix</h3>
+                            <p data-i18n="games.fertilizer-mix-desc">Match the fertilizer recipe pattern!</p>
                             <div class="game-stats">
-                                <span class="difficulty">Medium</span>
+                                <span class="difficulty" data-i18n="games.difficulty.medium">Medium</span>
                                 <span class="reward">+8 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -256,15 +278,15 @@
                             <div class="game-particles"></div>
                         </div>
                         <div class="game-info">
-                            <h3>Sunlight Focus</h3>
-                            <p>Guide the sunlight beam to the plant!</p>
+                            <h3 data-i18n="games.sunlight-focus">Sunlight Focus</h3>
+                            <p data-i18n="games.sunlight-focus-desc">Guide the sunlight beam to the plant!</p>
                             <div class="game-stats">
-                                <span class="difficulty">Medium</span>
+                                <span class="difficulty" data-i18n="games.difficulty.medium">Medium</span>
                                 <span class="reward">+6 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -300,7 +322,7 @@
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -313,12 +335,12 @@
                             <h3>Memory Garden</h3>
                             <p>Find matching pairs of plant cards!</p>
                             <div class="game-stats">
-                                <span class="difficulty">Easy</span>
+                                <span class="difficulty" data-i18n="games.difficulty.easy">Easy</span>
                                 <span class="reward">+8 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                     
@@ -328,15 +350,15 @@
                             <div class="game-particles"></div>
                         </div>
                         <div class="game-info">
-                            <h3>Nutrient Balance</h3>
-                            <p>Balance nutrients on the scale for perfect growth!</p>
+                            <h3 data-i18n="games.nutrient-balance">Nutrient Balance</h3>
+                            <p data-i18n="games.nutrient-balance-desc">Balance nutrients on the scale for perfect growth!</p>
                             <div class="game-stats">
-                                <span class="difficulty">Medium</span>
+                                <span class="difficulty" data-i18n="games.difficulty.medium">Medium</span>
                                 <span class="reward">+14 coins</span>
                             </div>
                         </div>
                         <div class="game-overlay">
-                            <button class="play-btn">Play Now</button>
+                            <button class="play-btn" data-i18n="games.play-now">Play Now</button>
                         </div>
                     </div>
                 </div>
@@ -363,18 +385,20 @@
                             <div class="progress-fill" id="achievement-progress-fill"></div>
                         </div>
                         <div class="progress-text">
-                        <span id="achievements-unlocked">0</span> / <span id="achievements-total">0</span> unlocked
+                            <span id="achievements-unlocked">0</span> / <span id="achievements-total">0</span> unlocked
                         </div>
                     </div>
                 </div>
                 <div class="achievements-categories">
                     <button class="achievement-category active" data-category="all">All</button>
                     <button class="achievement-category" data-category="growth">Growth</button>
+                    <button class="achievement-category" data-category="actions">Actions</button>
                     <button class="achievement-category" data-category="games">Games</button>
                     <button class="achievement-category" data-category="challenges">Challenges</button>
-                    <button class="achievement-category" data-category="special">Special</button>
+                    <button class="achievement-category" data-category="streaks">Streaks</button>
+                    <button class="achievement-category" data-category="rare">Rare</button>
                 </div>
-                <div class="achievements-grid" id="achievements-grid">
+                <div class="achievements-list" id="achievements-list">
                     <!-- Achievements will be populated by JavaScript -->
                 </div>
             </section>
@@ -387,13 +411,13 @@
                         <div class="avatar-level" id="profile-avatar-level">1</div>
                     </div>
                     <div class="profile-info">
-                        <h2 class="profile-title">Plant Master</h2>
-                        <p class="profile-subtitle">Novice Gardener</p>
+                        <h2 class="profile-title" data-i18n="username">Plant Master</h2>
+                        <p class="profile-subtitle" data-i18n="title">Novice Gardener</p>
                         <div class="profile-progress">
                             <div class="progress-bar">
                                 <div class="progress-fill" id="profile-progress-fill"></div>
                             </div>
-                            <span class="progress-text">Level 1 • 0/100 XP</span>
+                            <span class="progress-text" data-i18n="profile.level-xp">Level 1 • 0/100 XP</span>
                         </div>
                     </div>
                 </div>
@@ -403,7 +427,7 @@
                         <div class="stat-icon">🌱</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-level">1</div>
-                            <div class="stat-label">Plant Level</div>
+                            <div class="stat-label" data-i18n="common.level">Plant Level</div>
                         </div>
                         <div class="stat-glow"></div>
                     </div>
@@ -411,41 +435,41 @@
                         <div class="stat-icon">⭐</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-total-exp">0</div>
-                            <div class="stat-label">Total XP</div>
+                            <div class="stat-label" data-i18n="common.experience">Total XP</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🪙</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-total-coins">0</div>
-                            <div class="stat-label">Coins Earned</div>
+                            <div class="stat-label" data-i18n="common.coins">Coins Earned</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🎮</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-games-played">0</div>
-                            <div class="stat-label">Games Played</div>
+                            <div class="stat-label" data-i18n="profile.games-played">Games Played</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🎯</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-challenges">0</div>
-                            <div class="stat-label">Challenges</div>
+                            <div class="stat-label" data-i18n="profile.challenges">Challenges</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🔥</div>
                         <div class="stat-info">
                             <div class="stat-value" id="profile-best-streak">0</div>
-                            <div class="stat-label">Best Streak</div>
+                            <div class="stat-label" data-i18n="profile.best-streak">Best Streak</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="profile-achievements">
-                    <h3 class="section-title">Recent Achievements</h3>
+                    <h3 class="section-title" data-i18n="profile.achievements">Recent Achievements</h3>
                     <div class="achievements-preview" id="profile-achievements">
                         <div class="achievement-preview">
                             <div class="achievement-icon">🏆</div>
@@ -460,16 +484,16 @@
                 <div class="profile-actions">
                     <button class="profile-btn premium" id="buy-coffee-btn">
                         <span class="btn-icon">☕</span>
-                        <span class="btn-text">Buy Me a Coffee</span>
+                        <span class="btn-text">Donation Alerts</span>
                         <div class="btn-glow"></div>
                     </button>
                     <button class="profile-btn secondary" id="export-data-btn">
                         <span class="btn-icon">📤</span>
-                        <span class="btn-text">Export Data</span>
+                        <span class="btn-text" data-i18n="profile.export-data">Export Data</span>
                     </button>
                     <button class="profile-btn danger" id="reset-game-btn">
                         <span class="btn-icon">🔄</span>
-                        <span class="btn-text">Reset Game</span>
+                        <span class="btn-text" data-i18n="profile.reset-game">Reset Game</span>
                     </button>
                 </div>
             </section>
@@ -485,21 +509,21 @@
                         <div class="stat-icon">🌱</div>
                         <div class="stat-info">
                             <div class="stat-value" id="garden-plants">1</div>
-                            <div class="stat-label">Plants</div>
+                            <div class="stat-label" data-i18n="garden-plants">Plants</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🌸</div>
                         <div class="stat-info">
                             <div class="stat-value" id="garden-varieties">1</div>
-                            <div class="stat-label">Varieties</div>
+                            <div class="stat-label" data-i18n="garden-varieties">Varieties</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🌿</div>
                         <div class="stat-info">
                             <div class="stat-value" id="garden-health">100%</div>
-                            <div class="stat-label">Health</div>
+                            <div class="stat-label" data-i18n="garden-health">Health</div>
                         </div>
                     </div>
                 </div>
@@ -549,33 +573,118 @@
         <nav class="bottom-nav">
             <button class="nav-tab active" data-tab="home" data-action="switch-tab">
                 <span class="nav-icon">🏠</span>
-                <span class="nav-label">Home</span>
             </button>
             <button class="nav-tab" data-tab="shop" data-action="switch-tab">
                 <span class="nav-icon">🛍️</span>
-                <span class="nav-label">Shop</span>
             </button>
             <button class="nav-tab" data-tab="games" data-action="switch-tab">
                 <span class="nav-icon">🎮</span>
-                <span class="nav-label">Games</span>
             </button>
             <button class="nav-tab" data-tab="challenges" data-action="switch-tab">
                 <span class="nav-icon">🎯</span>
-                <span class="nav-label">Challenges</span>
             </button>
             <button class="nav-tab" data-tab="achievements" data-action="switch-tab">
                 <span class="nav-icon">🏆</span>
-                <span class="nav-label">Achievements</span>
             </button>
             <button class="nav-tab" data-tab="garden" data-action="switch-tab">
                 <span class="nav-icon">🌺</span>
-                <span class="nav-label">Garden</span>
             </button>
             <button class="nav-tab" data-tab="profile" data-action="switch-tab">
                 <span class="nav-icon">👤</span>
-                <span class="nav-label">Profile</span>
             </button>
         </nav>
+    </div>
+
+    <!-- Plant Name Modal -->
+    <div id="plant-name-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">🌱 Name Your Plant</h2>
+                    <button class="close-btn" id="close-plant-name" data-action="close-plant-name">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="plant-name-form">
+                        <div class="form-group">
+                            <label for="plant-name-input">Give your plant a special name:</label>
+                            <input type="text" id="plant-name-input" class="plant-name-input" 
+                                   placeholder="Enter plant name..." maxlength="20">
+                            <div class="input-hint">Maximum 20 characters</div>
+                        </div>
+                        <div class="suggested-names">
+                            <h4>Suggested names:</h4>
+                            <div class="name-suggestions">
+                                <button class="name-suggestion" data-name="Sprout">Sprout</button>
+                                <button class="name-suggestion" data-name="Buddy">Buddy</button>
+                                <button class="name-suggestion" data-name="Greenie">Greenie</button>
+                                <button class="name-suggestion" data-name="Leafy">Leafy</button>
+                                <button class="name-suggestion" data-name="Grower">Grower</button>
+                                <button class="name-suggestion" data-name="Happy">Happy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="plant-name-btn secondary" id="skip-plant-name">Skip</button>
+                    <button class="plant-name-btn primary" id="save-plant-name">Save Name</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorial-modal" class="modal-overlay tutorial-modal">
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">🌱 Welcome to Click&Grow!</h2>
+                    <button class="close-btn" id="close-tutorial" data-action="close-tutorial">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tutorial-steps">
+                        <div class="tutorial-step active" data-step="1">
+                            <div class="step-icon">🌱</div>
+                            <h3>Welcome, Gardener!</h3>
+                            <p>You're about to start your plant care journey. Let me show you the basics!</p>
+                            <div class="step-indicator">Step 1 of 5</div>
+                        </div>
+                        
+                        <div class="tutorial-step" data-step="2">
+                            <div class="step-icon">💧</div>
+                            <h3>Water Your Plant</h3>
+                            <p>Click the water button to give your plant life. Plants need water to grow!</p>
+                            <div class="step-indicator">Step 2 of 5</div>
+                        </div>
+                        
+                        <div class="tutorial-step" data-step="3">
+                            <div class="step-icon">🌿</div>
+                            <h3>Use Fertilizer</h3>
+                            <p>Fertilizer helps your plant grow faster and stronger. Use it wisely!</p>
+                            <div class="step-indicator">Step 3 of 5</div>
+                        </div>
+                        
+                        <div class="tutorial-step" data-step="4">
+                            <div class="step-icon">☀️</div>
+                            <h3>Provide Sunlight</h3>
+                            <p>Sunlight gives your plant energy. Keep it happy with regular light!</p>
+                            <div class="step-indicator">Step 4 of 5</div>
+                        </div>
+                        
+                        <div class="tutorial-step" data-step="5">
+                            <div class="step-icon">🎮</div>
+                            <h3>Play Mini-Games</h3>
+                            <p>Complete mini-games to earn extra rewards and level up faster!</p>
+                            <div class="step-indicator">Step 5 of 5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-actions">
+                        <button class="tutorial-btn secondary" id="skip-tutorial">Skip Tutorial</button>
+                        <button class="tutorial-btn primary" id="next-step">Next Step</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Welcome Modal -->
@@ -594,7 +703,7 @@
                     </div>
                     <h1 class="modal-title">Click&Grow Premium</h1>
                     <p class="modal-subtitle">Ultimate Plant Care Experience</p>
-                    <div class="version-badge">v1.0.0</div>
+                    <div class="version-badge">v0.0.5a</div>
                 </div>
                 
                 <div class="modal-body">
@@ -683,32 +792,36 @@
                     </div>
                     
                     <div class="settings-section">
-                        <h3>Preferences</h3>
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="dark-theme-toggle">
-                                <span class="setting-text">Dark Mode</span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="sound-toggle" checked>
-                                <span class="setting-text">Sound Effects</span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="setting-label">
-                                <input type="checkbox" id="notifications-toggle" checked>
-                                <span class="setting-text">Notifications</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h3>Contact with me</h3>
+                        <h3>👨‍💻 Developer Contact</h3>
                         <div class="contact-info">
-                            <p>TG: @msd1shka</p>
-                            <p>Version: v1.0.0</p>
+                            <div class="contact-card">
+                                <div class="contact-icon">📱</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Telegram</div>
+                                    <div class="contact-value">@msd1shka</div>
+                                </div>
+                                <button class="contact-btn" onclick="window.open('https://t.me/msd1shka', '_blank')">
+                                    <span>💬</span>
+                                </button>
+                            </div>
+                            <div class="contact-card">
+                                <div class="contact-icon">🚀</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Version</div>
+                                    <div class="contact-value">v0.0.5</div>
+                                </div>
+                                <div class="contact-badge">Alpha</div>
+                            </div>
+                            <div class="contact-card">
+                                <div class="contact-icon">⭐</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Feedback</div>
+                                    <div class="contact-value">Rate & Review</div>
+                                </div>
+                                <button class="contact-btn" onclick="alert('Thank you for your interest! Rating system coming soon.')">
+                                    <span>⭐</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -716,28 +829,28 @@
         </div>
     </div>
 
-    <!-- Buy Me Coffee Modal -->
+    <!-- Donation Alerts Modal -->
     <div id="coffee-modal" class="modal-overlay coffee-modal">
         <div class="modal-container">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="modal-title">☕ Buy Me a Coffee</h2>
+                    <h2 class="modal-title">💚 Donation Alerts</h2>
                     <button class="close-btn" id="close-coffee" data-action="close-coffee">✕</button>
                 </div>
                 <div class="modal-body">
                     <div class="coffee-content">
-                        <div class="coffee-icon">☕</div>
-                        <h3>Coming Soon!</h3>
-                        <p>Support the development of Click&Grow Premium and get exclusive rewards.</p>
+                        <div class="coffee-icon">💚</div>
+                        <h3>Support the project</h3>
+                        <p>You can support Click&Grow Premium via Donation Alerts.</p>
                         <div class="coffee-features">
-                            <div class="feature">✨ Exclusive Plant Skins</div>
-                            <div class="feature">🎮 Special Mini-Games</div>
-                            <div class="feature">🏆 Unique Achievements</div>
-                            <div class="feature">💎 Bonus Gems Daily</div>
+                            <div class="feature">✨ Helps fund new features</div>
+                            <div class="feature">🎮 Improves mini-games</div>
+                            <div class="feature">🏆 Enables more achievements</div>
+                            <div class="feature">💎 Supports ongoing development</div>
                         </div>
                         <button class="coffee-notify-btn" id="coffee-notify-btn">
-                            <span class="btn-icon">🔔</span>
-                            <span class="btn-text">Notify When Available</span>
+                            <span class="btn-icon">🔗</span>
+                            <span class="btn-text">Open Donation Alerts</span>
                         </button>
                     </div>
                 </div>
@@ -763,28 +876,21 @@
     </div>
 
     <!-- Achievement Toast -->
-    <div id="achievement-toast" class="achievement-toast">
-        <div class="toast-icon">🏆</div>
-        <div class="toast-content">
-            <div class="toast-title">Achievement Unlocked!</div>
-            <div class="toast-description" id="achievement-description"></div>
+    <template id="achievement-toast-template">
+        <div class="achievement-toast">
+            <div class="toast-icon">🏆</div>
+            <div class="toast-content">
+                <div class="toast-title">Achievement Unlocked!</div>
+                <div class="toast-description"></div>
+            </div>
+            <div class="toast-progress"></div>
         </div>
-        <div class="toast-progress"></div>
-    </div>
+    </template>
 
     <!-- Action Feedback -->
     <div id="action-feedback" class="action-feedback"></div>
 
-    <!-- Level Up Notification -->
-    <div id="level-up-notification" class="level-up-notification">
-        <div class="notification-content">
-            <div class="notification-icon">🎉</div>
-            <div class="notification-text">
-                <div class="notification-title">Level Up!</div>
-                <div class="notification-subtitle">Your plant reached level <span id="new-level">2</span>!</div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- JavaScript Modules -->
     <script src="js/utils.js"></script>

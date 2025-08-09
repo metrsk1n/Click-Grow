@@ -1,4 +1,4 @@
-// Click&Grow Premium v0.0.5-alpha - Plant Renderer
+// Click&Grow Premium v0.0.5a - Plant Renderer
 
 class PlantRenderer {
     constructor() {
@@ -212,11 +212,28 @@ class PlantRenderer {
         return '';
     }
 
+    renderDeadPlant(container) {
+        if (!container) return;
+        container.innerHTML = `
+            <div class="plant dead" aria-label="dead-plant">
+                <div class="dead-plant-emoji">🥀</div>
+                <div class="dead-plant-label" data-i18n="plant.dead">Your sprout has died</div>
+                <div class="dead-plant-sub" data-i18n="plant.dead_hint">Open the app more often to keep it alive. Tap Restart to begin anew.</div>
+            </div>
+        `;
+        container.classList.add('dead-state');
+    }
+
     updatePlantVisual(level) {
         const plantContainer = document.querySelector('.plant-visual');
-        if (plantContainer) {
-            this.renderPlant(level, plantContainer);
+        if (!plantContainer) return;
+        // If dead, render dead visual
+        const engine = window.gameEngine;
+        if (engine && engine.gameState && engine.gameState.dead) {
+            this.renderDeadPlant(plantContainer);
+            return;
         }
+        this.renderPlant(level, plantContainer);
         console.log(`Plant visual updated to level ${level}`);
     }
 

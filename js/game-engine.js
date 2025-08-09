@@ -1,4 +1,4 @@
-// Click&Grow Premium v0.0.5-alpha - Game Engine
+// Click&Grow Premium v0.0.5a - Game Engine
 
 class GameEngine {
     constructor() {
@@ -18,6 +18,10 @@ class GameEngine {
     async init() {
         try {
             this.loadGameData();
+            // Apply offline decay and death checks
+            this.applyOfflineDecayAndDeath();
+            // Start a lightweight periodic tick (every 10 minutes) while app is open
+            this.startOnlineTick();
             await this.challengeSystem.init();
             console.log('✅ GameEngine initialized with all systems');
         } catch (error) {
@@ -28,34 +32,53 @@ class GameEngine {
 
     initializeGameState() {
         return {
-            plantName: '',
             level: 1,
             experience: 0,
             coins: 100,
             gems: 0,
-            happiness: 100,
-            health: 100,
+            happiness: 100, // 0-100
+            health: 100,    // 0-100
+            growth: 0,      // 0-100 (progress within current level or visual growth)
+            plantName: 'Sprout', // Default plant name
             lastWatered: Date.now(),
             lastFertilized: Date.now(),
             lastSunlight: Date.now(),
             totalExp: 0,
             totalCoinsEarned: 0,
+            totalGemsEarned: 0,
+            totalActions: 0,
+            totalGamesPlayed: 0,
+            totalChallengesCompleted: 0,
+            totalAchievementsUnlocked: 0,
+            bestScore: 0,
+            averageScore: 0,
+            longestStreak: 0,
+            currentStreak: 0,
+            playTime: 0,
+            lastPlayTime: Date.now(), // ms timestamp
+            lastPlayDate: new Date().toDateString(),
+            dead: false,
             actionCounts: {
                 water: 0,
                 fertilizer: 0,
                 sunlight: 0
             },
+            gameStats: {
+                waterGames: { played: 0, bestScore: 0, totalScore: 0 },
+                fertilizerGames: { played: 0, bestScore: 0, totalScore: 0 },
+                sunlightGames: { played: 0, bestScore: 0, totalScore: 0 },
+                puzzleGames: { played: 0, bestScore: 0, totalScore: 0 },
+                speedGames: { played: 0, bestScore: 0, totalScore: 0 },
+                memoryGames: { played: 0, bestScore: 0, totalScore: 0 },
+                balanceGames: { played: 0, bestScore: 0, totalScore: 0 }
+            },
             minigamesCompleted: 0,
             consecutiveDays: 1,
-            happinessStreakHours: 0,
-            lastPlayDate: new Date().toDateString(),
-            inventory: {
-                superFertilizer: 0,
-                growthBooster: 0,
-                happinessPotion: 0,
+            boosters: {
                 experienceMultiplier: 0,
                 coinMultiplier: 0
             },
+            inventory: {},
             settings: {
                 darkMode: false,
                 notifications: true,
@@ -80,7 +103,7 @@ class GameEngine {
                 name: 'Super Fertilizer',
                 description: 'Doubles fertilizer effectiveness for 1 hour',
                 icon: '🧪',
-                price: 150,
+                price: 1200,
                 currency: 'coins',
                 category: 'boosters'
             },
@@ -88,7 +111,7 @@ class GameEngine {
                 name: 'Growth Booster',
                 description: 'Increases XP gain by 50% for 30 minutes',
                 icon: '⚡',
-                price: 200,
+                price: 1400,
                 currency: 'coins',
                 category: 'boosters'
             },
@@ -96,7 +119,15 @@ class GameEngine {
                 name: 'Happiness Potion',
                 description: 'Instantly restores happiness to 100%',
                 icon: '😊',
-                price: 100,
+                price: 600,
+                currency: 'coins',
+                category: 'consumables'
+            },
+            healthElixir: {
+                name: 'Health Elixir',
+                description: 'Instantly restores health to 100%',
+                icon: '❤️',
+                price: 500,
                 currency: 'coins',
                 category: 'consumables'
             },
@@ -104,7 +135,7 @@ class GameEngine {
                 name: 'XP Multiplier',
                 description: 'Double XP for 2 hours',
                 icon: '⭐',
-                price: 2,
+                price: 25,
                 currency: 'gems',
                 category: 'premium'
             },
@@ -112,7 +143,7 @@ class GameEngine {
                 name: 'Coin Multiplier',
                 description: 'Double coin rewards for 2 hours',
                 icon: '💰',
-                price: 3,
+                price: 35,
                 currency: 'gems',
                 category: 'premium'
             },
@@ -120,7 +151,7 @@ class GameEngine {
                 name: 'Rainbow Seed',
                 description: 'Special seed that grows faster',
                 icon: '🌈',
-                price: 5,
+                price: 75,
                 currency: 'gems',
                 category: 'premium'
             },
@@ -128,271 +159,94 @@ class GameEngine {
                 name: 'Time Accelerator',
                 description: 'Reduces cooldowns by 50% for 1 hour',
                 icon: '⏰',
-                price: 1,
+                price: 15,
                 currency: 'gems',
                 category: 'premium'
+            },
+            goldenWater: {
+                name: 'Golden Water',
+                description: 'Premium water that gives 3x rewards',
+                icon: '💧',
+                price: 25,
+                currency: 'gems',
+                category: 'special'
+            },
+            cosmicFertilizer: {
+                name: 'Cosmic Fertilizer',
+                description: 'Legendary fertilizer with amazing effects',
+                icon: '✨',
+                price: 55,
+                currency: 'gems',
+                category: 'special'
+            },
+            plantSkin: {
+                name: 'Golden Plant Skin',
+                description: 'Beautiful golden plant appearance',
+                icon: '🎨',
+                price: 60,
+                currency: 'gems',
+                category: 'cosmetics'
             }
         };
     }
 
     loadGameData() {
-        const savedData = this.storage.get('gameState');
-        if (savedData) {
-            // Merge saved data with default state
-            this.gameState = { ...this.gameState, ...savedData };
-            
-            // Ensure new properties exist
-            if (!this.gameState.challenges) {
-                this.gameState.challenges = {
-                    completed: [],
-                    progress: {},
-                    lastReset: {
-                        daily: Date.now(),
-                        weekly: Date.now(),
-                        monthly: Date.now()
-                    }
-                };
+        try {
+            const savedState = JSON.parse(localStorage.getItem('clickgrow_state'));
+            if (savedState) {
+                this.gameState = { ...this.initializeGameState(), ...savedState };
             }
-            
-            if (!this.gameState.settings.particlesEnabled) {
-                this.gameState.settings.particlesEnabled = true;
-            }
+        } catch (e) {
+            console.warn('⚠️ Failed to load game data, using defaults', e);
         }
-        
-        // Load theme preference
-        const savedTheme = this.storage.get('theme', 'light');
-        this.gameState.settings.darkMode = savedTheme === 'dark';
-        
-        console.log('📊 Game data loaded');
     }
 
     saveGameData() {
-        this.storage.set('gameState', this.gameState);
-        this.storage.set('theme', this.gameState.settings.darkMode ? 'dark' : 'light');
-        console.log('💾 Game data saved');
+        // Update last active timestamps when saving
+        this.gameState.lastPlayTime = Date.now();
+        this.gameState.lastPlayDate = new Date().toDateString();
+        localStorage.setItem('clickgrow_state', JSON.stringify(this.gameState));
     }
 
-    async performAction(actionType) {
-        const now = Date.now();
-        const cooldownTimes = {
-            water: 30000,    // 30 seconds
-            fertilizer: 60000, // 1 minute
-            sunlight: 45000   // 45 seconds
-        };
-
-        const lastActionTime = this.gameState[`last${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`];
-        const timeSinceLastAction = now - lastActionTime;
-
-        if (timeSinceLastAction < cooldownTimes[actionType]) {
-            const remainingTime = cooldownTimes[actionType] - timeSinceLastAction;
-            this.uiManager.showActionFeedback(`⏰ ${actionType} is on cooldown! Wait ${Math.ceil(remainingTime / 1000)}s`);
-            return { success: false, reason: 'cooldown' };
-        }
-
-        // Start minigame for the action
-        const minigameResult = await this.minigameSystem.startGame(actionType);
+    performAction(actionType) {
+        this.gameState.totalActions++;
         
-        if (minigameResult.success) {
-            this.processActionResult(actionType, minigameResult.score);
-            
-            // Update challenge progress
-            this.challengeSystem.updateChallengeProgress(actionType, 1);
-            
-            // Update last action time
-            this.gameState[`last${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`] = now;
-            this.gameState.actionCounts[actionType]++;
-            
-            this.saveGameData();
-            this.updateUI();
-            
-            return { success: true, score: minigameResult.score };
-        } else {
-            this.uiManager.showActionFeedback(`❌ ${actionType} action failed!`);
-            return { success: false, reason: 'minigame_failed' };
-        }
-    }
-
-    processActionResult(actionType, score) {
-        const baseRewards = {
-            water: { exp: 10, coins: 5, happiness: 5 },
-            fertilizer: { exp: 15, coins: 8, happiness: 3 },
-            sunlight: { exp: 12, coins: 6, happiness: 4 }
-        };
-
-        const baseReward = baseRewards[actionType];
-        const multiplier = 1 + (score / 100); // Score affects reward multiplier
-
-        const expGain = Math.floor(baseReward.exp * multiplier);
-        const coinGain = Math.floor(baseReward.coins * multiplier);
-        const happinessGain = Math.floor(baseReward.happiness * multiplier);
-
-        // Apply boosters if active
-        const activeBoosters = this.getActiveBoosters();
-        const finalExpGain = Math.floor(expGain * activeBoosters.expMultiplier);
-        const finalCoinGain = Math.floor(coinGain * activeBoosters.coinMultiplier);
-
-        // Add rewards
-        this.addExperience(finalExpGain);
-        this.addCoins(finalCoinGain);
-        this.gameState.happiness = Math.min(100, this.gameState.happiness + happinessGain);
-
-        // Show feedback
-        const feedback = `+${finalExpGain} XP +${finalCoinGain} 💰 +${happinessGain} 😊`;
-        this.uiManager.showActionFeedback(feedback);
-
-        // Check for level up
-        this.checkLevelUp();
-
-        // Check achievements
-        this.achievementSystem.checkAchievements(this.gameState);
-
-        // Create particles
-        if (this.gameState.settings.particlesEnabled) {
-            this.particleSystem.createParticles(actionType, 50, 50);
-        }
-    }
-
-    getActiveBoosters() {
-        const boosters = { expMultiplier: 1, coinMultiplier: 1 };
-        
-        // Check for active boosters in inventory
-        if (this.gameState.inventory.experienceMultiplier > 0) {
-            boosters.expMultiplier = 2;
-        }
-        if (this.gameState.inventory.coinMultiplier > 0) {
-            boosters.coinMultiplier = 2;
-        }
-        
-        return boosters;
-    }
-
-    checkLevelUp() {
-        const currentLevel = this.gameState.level;
-        const requiredExp = this.getRequiredExpForLevel(currentLevel + 1);
-        
-        if (this.gameState.experience >= requiredExp && currentLevel < 240) {
-            this.gameState.level++;
-            this.gameState.experience -= requiredExp;
-            
-            // Level up rewards
-            const levelRewards = this.getLevelRewards(currentLevel + 1);
-            this.addCoins(levelRewards.coins);
-            this.addGems(levelRewards.gems);
-            
-            // Show level up notification
-            this.uiManager.showLevelUpNotification(currentLevel + 1, levelRewards);
-            
-            // Update plant visual
-            this.plantRenderer.updatePlantVisual(currentLevel + 1);
-            
-            // Check achievements
-            this.achievementSystem.checkAchievements(this.gameState);
-            
-            console.log(`🎉 Level up! Now level ${currentLevel + 1}`);
-        }
-    }
-
-    getRequiredExpForLevel(level) {
-        // Progressive difficulty: each level requires more XP
-        if (level <= 10) return level * 100;
-        if (level <= 25) return level * 150;
-        if (level <= 50) return level * 200;
-        if (level <= 100) return level * 300;
-        if (level <= 150) return level * 400;
-        if (level <= 200) return level * 500;
-        return level * 600; // Levels 201-240
-    }
-
-    getLevelRewards(level) {
-        const baseCoins = Math.floor(level * 10);
-        const baseGems = Math.floor(level / 10);
-        
-        return {
-            coins: baseCoins,
-            gems: baseGems
-        };
-    }
-
-    purchaseShopItem(itemId) {
-        const item = this.shopItems[itemId];
-        if (!item) return { success: false, reason: 'item_not_found' };
-
-        const currency = item.currency === 'gems' ? 'gems' : 'coins';
-        const currentAmount = this.gameState[currency];
-
-        if (currentAmount < item.price) {
-            return { success: false, reason: 'insufficient_funds' };
-        }
-
-        // Purchase item
-        this.gameState[currency] -= item.price;
-        this.gameState.inventory[itemId]++;
-
-        this.saveGameData();
-        this.updateUI();
-
-        this.uiManager.showActionFeedback(`✅ Purchased ${item.name}!`);
-        return { success: true };
-    }
-
-    useItem(itemId) {
-        if (this.gameState.inventory[itemId] <= 0) {
-            return { success: false, reason: 'no_items' };
-        }
-
-        this.gameState.inventory[itemId]--;
-        
-        // Apply item effects
-        switch (itemId) {
-            case 'happinessPotion':
-                this.gameState.happiness = 100;
-                this.uiManager.showActionFeedback('😊 Happiness restored to 100%!');
+        switch (actionType) {
+            case 'water':
+                this.gameState.actionCounts.water++;
+                // Watering boosts health slightly and growth
+                this.gameState.health = Math.min(100, this.gameState.health + 5);
+                this.gameState.growth = Math.min(100, this.gameState.growth + 3);
                 break;
-            case 'superFertilizer':
-                // Apply fertilizer boost for 1 hour
-                this.uiManager.showActionFeedback('🧪 Super fertilizer active for 1 hour!');
+            case 'fertilizer':
+                this.gameState.actionCounts.fertilizer++;
+                // Fertilizer boosts growth significantly
+                this.gameState.growth = Math.min(100, this.gameState.growth + 8);
                 break;
-            case 'growthBooster':
-                // Apply XP boost for 30 minutes
-                this.uiManager.showActionFeedback('⚡ Growth booster active for 30 minutes!');
+            case 'sunlight':
+                this.gameState.actionCounts.sunlight++;
+                // Sunlight boosts happiness and a bit of health
+                this.gameState.happiness = Math.min(100, this.gameState.happiness + 6);
+                this.gameState.health = Math.min(100, this.gameState.health + 2);
+                break;
+            case 'entertain':
+                // Entertainment action: improves happiness, tiny growth via morale
+                this.gameState.happiness = Math.min(100, this.gameState.happiness + 10);
+                this.gameState.growth = Math.min(100, this.gameState.growth + 1);
+                if (this.uiManager) this.uiManager.showActionFeedback('🎵 Your plant enjoyed the entertainment!', 'success');
                 break;
         }
 
         this.saveGameData();
         this.updateUI();
-        return { success: true };
-    }
-
-    toggleDarkMode(force = null) {
-        const newMode = force !== null ? force : !this.gameState.settings.darkMode;
-        this.gameState.settings.darkMode = newMode;
-        
-        document.documentElement.setAttribute('data-theme', newMode ? 'dark' : 'light');
-        this.saveGameData();
-        
-        console.log(`🌙 Dark mode ${newMode ? 'enabled' : 'disabled'}`);
-    }
-
-    openBuyMeCoffee() {
-        // Placeholder for future implementation
-        this.uiManager.showActionFeedback('☕ Buy Me a Coffee - Coming Soon!');
-    }
-
-    awardAchievementRewards(achievement) {
-        if (achievement.reward.coins) {
-            this.addCoins(achievement.reward.coins);
-        }
-        if (achievement.reward.exp) {
-            this.addExperience(achievement.reward.exp);
-        }
-        if (achievement.reward.gems) {
-            this.addGems(achievement.reward.gems);
-        }
     }
 
     updateUI() {
         // Update all UI elements
         this.uiManager.updateAllDisplays(this.gameState);
+        
+        // Update plant visual, including dead state rendering handled by UI
+        this.uiManager.updatePlantVisual(this.gameState.level);
         
         // Update challenge system UI
         this.challengeSystem.updateUI();
@@ -403,29 +257,13 @@ class GameEngine {
         this.gameState.totalExp += amount;
     }
 
-    addCoins(amount) {
-        this.gameState.coins += amount;
-        this.gameState.totalCoinsEarned += amount;
-    }
-
-    addGems(amount) {
-        this.gameState.gems += amount;
-    }
-
     setLevel(level) {
         if (level >= 1 && level <= 240) {
             this.gameState.level = level;
-            this.plantRenderer.updatePlantVisual(level);
+            // Let UI decide whether to render dead or alive
+            this.uiManager.updatePlantVisual(level);
             this.updateUI();
         }
-    }
-
-    getGameState() {
-        return this.gameState;
-    }
-
-    getShopItems() {
-        return this.shopItems;
     }
 
     resetGame() {
@@ -435,6 +273,65 @@ class GameEngine {
         this.saveGameData();
         this.updateUI();
         console.log('🔄 Game reset');
+    }
+
+    // Apply offline decay based on time elapsed and handle death after 7 days of inactivity
+    applyOfflineDecayAndDeath() {
+        const now = Date.now();
+        const last = this.gameState.lastPlayTime || now;
+        const elapsedMs = Math.max(0, now - last);
+        const elapsedHours = Math.floor(elapsedMs / (60 * 60 * 1000));
+
+        // If no login > 7 days => plant dies
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        if (elapsedMs >= sevenDaysMs) {
+            this.gameState.dead = true;
+        }
+
+        // Apply decay only if not dead yet
+        if (!this.gameState.dead && elapsedHours > 0) {
+            // Happiness decays 2 per hour
+            this.gameState.happiness = Math.max(0, this.gameState.happiness - 2 * elapsedHours);
+            // Health decays 1 per hour if happiness is low
+            if (this.gameState.happiness < 30) {
+                this.gameState.health = Math.max(0, this.gameState.health - 1 * elapsedHours);
+            }
+            // Passive growth if both stats are high
+            if (this.gameState.health > 70 && this.gameState.happiness > 70) {
+                this.gameState.growth = Math.min(100, this.gameState.growth + 1 * Math.floor(elapsedHours / 3));
+            }
+        }
+
+        // If either stat reaches 0 for extended time, consider plant fragile (optional future)
+
+        // Persist applied decay baseline
+        this.saveGameData();
+    }
+
+    // Online tick to decay while the app is open (every 10 minutes)
+    startOnlineTick() {
+        if (this._onlineTick) clearInterval(this._onlineTick);
+        this._onlineTick = setInterval(() => {
+            if (this.gameState.dead) return;
+            // 10-minute step decay
+            this.gameState.happiness = Math.max(0, this.gameState.happiness - 1); // ~6/hr
+            if (this.gameState.happiness < 30) {
+                this.gameState.health = Math.max(0, this.gameState.health - 0.5);
+            }
+            if (this.gameState.health > 70 && this.gameState.happiness > 70) {
+                this.gameState.growth = Math.min(100, this.gameState.growth + 0.2);
+            }
+            // Death check: if no interaction for 7 days (handled offline), or health==0 for long (future)
+            this.saveGameData();
+            this.updateUI();
+        }, 10 * 60 * 1000);
+    }
+
+    // Helper to mark plant dead and force restart from UI
+    markPlantDead() {
+        this.gameState.dead = true;
+        this.saveGameData();
+        this.updateUI();
     }
 }
 
