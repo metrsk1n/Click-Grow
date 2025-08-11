@@ -638,6 +638,7 @@ button {
   position: relative;
   min-width: 60px;
   white-space: nowrap;
+  justify-content: center;
 }
 
 .nav-tab:hover {
@@ -667,6 +668,10 @@ button {
 .nav-icon {
   font-size: 1.25rem;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5em;
 }
 
 .nav-text {
@@ -877,9 +882,8 @@ button {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   flex-shrink: 0;
-  min-width: 140px;
-  max-width: 160px;
-  overflow: hidden;
+  min-width: 180px;
+  max-width: 220px;
 }
 
 .resource-item {
@@ -891,6 +895,7 @@ button {
   white-space: nowrap;
   flex-shrink: 0;
   min-width: 0;
+  overflow: visible;
 }
 
 .resource-icon {
@@ -1438,6 +1443,9 @@ button {
   margin-bottom: var(--space-6);
   width: 100%;
   max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: center;
 }
 
 .action-btn {
@@ -1496,6 +1504,10 @@ button {
   gap: var(--space-3);
   width: 100%;
   max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  justify-items: center;
 }
 
 .stat-card {

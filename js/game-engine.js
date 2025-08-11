@@ -1,7 +1,7 @@
 // Click&Grow Premium v0.0.5a - Game Engine
 
 class GameEngine {
-    constructor() {
+    constructor(userId = 0) {
         this.gameState = this.initializeGameState();
         this.plantRenderer = new PlantRenderer();
         this.uiManager = null; // Will be initialized in app.js
@@ -10,6 +10,10 @@ class GameEngine {
         this.challengeSystem = new ChallengeSystem(this);
         this.particleSystem = new ParticleSystem();
         this.storage = new Storage('clickgrow');
+        
+        // Per-user storage key (Telegram user or Guest 0)
+        this.userId = Number(userId) || 0;
+        this.userKey = `clickgrow_state_${this.userId}`;
         
         this.shopItems = this.initializeShopItems();
         // GameEngine created
@@ -279,7 +283,17 @@ class GameEngine {
 
     loadGameData() {
         try {
-            const savedState = JSON.parse(localStorage.getItem('clickgrow_state'));
+            // Prefer Storage wrapper; fall back to localStorage for backward-compat
+            let savedState = null;
+            try {
+                savedState = this.storage.get(this.userKey);
+            } catch (_) {
+                // ignore
+            }
+            if (!savedState) {
+                const legacy = localStorage.getItem(this.userKey) || localStorage.getItem('clickgrow_state');
+                if (legacy) savedState = JSON.parse(legacy);
+            }
             if (savedState) {
                 this.gameState = { ...this.initializeGameState(), ...savedState };
             }
@@ -292,7 +306,11 @@ class GameEngine {
         // Update last active timestamps when saving
         this.gameState.lastPlayTime = Date.now();
         this.gameState.lastPlayDate = new Date().toDateString();
-        localStorage.setItem('clickgrow_state', JSON.stringify(this.gameState));
+        try {
+            this.storage.set(this.userKey, this.gameState);
+        } catch (_) {
+            localStorage.setItem(this.userKey, JSON.stringify(this.gameState));
+        }
     }
 
     performAction(actionType) {

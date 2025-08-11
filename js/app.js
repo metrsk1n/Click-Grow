@@ -19,7 +19,8 @@ class ClickAndGrowApp {
             this.telegramIntegration.init();
             
             // Initialize game engine
-            this.gameEngine = new GameEngine();
+            const userId = this.telegramIntegration?.getUserId?.() ?? 0;
+            this.gameEngine = new GameEngine(userId);
             await this.gameEngine.init();
             
             // Expose for systems expecting window.app.gameEngine
@@ -72,6 +73,17 @@ class ClickAndGrowApp {
         if (this.gameEngine) {
             this.gameEngine.gameState.settings.darkMode = savedTheme === 'dark';
         }
+        
+        // Update toggle button icon/title
+        const btn = document.getElementById('theme-toggle-btn');
+        if (btn) {
+            const icon = btn.querySelector('.btn-icon');
+            if (icon) icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            btn.title = savedTheme === 'dark' ? 'Switch to Light' : 'Switch to Dark';
+        }
+        
+        // Sync Telegram UI colors if available
+        this.telegramIntegration?.updateThemeColors?.();
     }
     
     checkFirstTimeUser() {
@@ -152,6 +164,15 @@ class ClickAndGrowApp {
                 });
             });
             
+            // Theme toggle button
+            const themeToggle = document.getElementById('theme-toggle-btn');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.toggleTheme();
+                });
+            }
+            
             // Event listeners setup complete
         }
     }
@@ -202,6 +223,17 @@ class ClickAndGrowApp {
         localStorage.setItem('clickgrow_theme', newTheme);
         this.gameEngine.gameState.settings.darkMode = newTheme === 'dark';
         this.gameEngine.saveGameData();
+        
+        // Update toggle button icon/title
+        const btn = document.getElementById('theme-toggle-btn');
+        if (btn) {
+            const icon = btn.querySelector('.btn-icon');
+            if (icon) icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            btn.title = newTheme === 'dark' ? 'Switch to Light' : 'Switch to Dark';
+        }
+        
+        // Sync Telegram UI colors if available
+        this.telegramIntegration?.updateThemeColors?.();
     }
 }
 
