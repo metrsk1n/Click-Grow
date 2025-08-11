@@ -882,8 +882,8 @@ button {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   flex-shrink: 0;
-  min-width: 180px;
-  max-width: 220px;
+  min-width: 220px;
+  max-width: 260px;
 }
 
 .resource-item {

@@ -22,6 +22,12 @@ class MinigameSystem {
         this.currentGame = gameId;
         this.score = 0;
         this.isPlaying = true;
+        // Reset end flag and clear any previous timer to avoid overlaps
+        this.gameEnded = false;
+        if (this.gameTimer) {
+            clearInterval(this.gameTimer);
+            this.gameTimer = null;
+        }
         
         // Show game modal
         this.showGameModal();
@@ -131,24 +137,23 @@ class MinigameSystem {
     }
     
     startWateringGame() {
-        this.gameType = 'water';
-        this.score = 0;
-        this.timeLeft = 30;
-        
-        // Show watering game container
-        const waterGame = document.querySelector('.watering-game');
-        if (waterGame) {
-            waterGame.style.display = 'block';
+        const gameArea = document.getElementById('game-area');
+        const instructions = document.getElementById('game-instructions');
+        if (instructions) instructions.textContent = 'Tap the water drops before they disappear!';
+
+        if (gameArea) {
+            gameArea.innerHTML = `
+                <div class="watering-game">
+                    <div class="water-drops"></div>
+                </div>
+            `;
         }
-        
-        // Update UI
-        this.updateGameUI();
-        
-        // Start spawning water drops
+
+        // Ensure score UI is synced at start
+        this.updateScore();
+
+        // Begin spawning drops
         this.spawnWaterDrops();
-        
-        // Start timer
-        this.startGameTimer();
     }
     
     spawnWaterDrops() {
@@ -182,7 +187,7 @@ class MinigameSystem {
         // Click handler for scoring
         drop.addEventListener('click', () => {
             this.score += 10;
-            this.updateGameUI();
+            this.updateScore();
             drop.remove();
             
             // Particle effect
@@ -221,7 +226,7 @@ class MinigameSystem {
                 <div class="player-sequence" id="player-sequence"></div>
             </div>
         `;
-
+        
         this.startFertilizerRound();
     }
     
@@ -434,8 +439,10 @@ class MinigameSystem {
                 return;
             }
             timeLeft -= 1;
-            if (timerElement) timerElement.textContent = String(timeLeft);
+            if (timerElement) timerElement.textContent = String(Math.max(0, timeLeft));
             if (timeLeft <= 0) {
+                // Ensure UI shows 0 and end exactly once
+                if (timerElement) timerElement.textContent = '0';
                 clearInterval(this.gameTimer);
                 this.endGame();
             }
@@ -472,15 +479,41 @@ class MinigameSystem {
     }
     
     endGame() {
+        // Prevent double-end
+        if (this.gameEnded) return;
+        this.gameEnded = true;
         this.isPlaying = false;
         clearInterval(this.gameTimer);
         
-        // Give rewards (reduced)
+        // Give rewards (reduced) — update GameEngine state safely (no hard dependency on addCoins)
         const coins = Math.floor(this.score / 25);
-        this.gameEngine.addCoins(coins);
+        try {
+            if (this.gameEngine && this.gameEngine.gameState) {
+                this.gameEngine.gameState.coins = (this.gameEngine.gameState.coins || 0) + coins;
+                if (typeof this.gameEngine.saveGameData === 'function') this.gameEngine.saveGameData();
+                if (typeof this.gameEngine.updateUI === 'function') this.gameEngine.updateUI();
+            }
+        } catch (e) {
+            console.warn('Failed to apply coin reward:', e);
+        }
         
         // Show results
-        this.showGameResults();
+        try {
+            // Ensure modal is visible and UI exists
+            const modal = document.getElementById('game-modal');
+            const container = document.getElementById('game-container');
+            if (!modal || !modal.classList.contains('active') || !document.getElementById('game-area')) {
+                // Recreate modal content if needed
+                this.showGameModal();
+            }
+            this.showGameResults();
+        } catch (_) {
+            // Last resort: attempt once more after a tick
+            setTimeout(() => {
+                this.showGameModal();
+                this.showGameResults();
+            }, 0);
+        }
         
         // Resolve the game promise
         if (this.gameResolve) {
@@ -499,9 +532,10 @@ class MinigameSystem {
                 <h3>Game Complete!</h3>
                 <div class="final-score">Final Score: ${this.score}</div>
                 <div class="coins-earned">Coins Earned: +${coins}</div>
-                <button class="play-again-btn" id="play-again-btn">
-                    Play Again
-                </button>
+                <div class="game-actions">
+                    <button class="play-again-btn" id="play-again-btn">Play Again</button>
+                    <button class="close-game-btn" data-action="close-game">Close</button>
+                </div>
             </div>
         `;
         
